@@ -1,0 +1,44 @@
+{
+  "name": "Save My Eyes - 구해줘, 내 눈",
+  "short_name": "구해줘, 내 눈",
+  "description": "어두운 곳에서 폰을 본 오늘 밤, 내 눈 피로도와 회복법을 알려주는 자가 점검(참고용) 앱",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#10142e",
+  "theme_color": "#10142e",
+  "lang": "ko",
+  "dir": "ltr",
+  "categories": [
+    "health",
+    "lifestyle"
+  ],
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

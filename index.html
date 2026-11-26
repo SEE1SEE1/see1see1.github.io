@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>구해줘, 내 눈 · Save My Eyes</title>
+<meta name="theme-color" content="#10142e">
+<meta name="description" content="어두운 곳에서 폰을 본 오늘 밤, 눈의 피로도와 회복법을 알려주는 자가 점검(참고용) 앱">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=IBM+Plex+Sans+KR:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/*
+VOICE: 차분한 밤, 겁주지 않고 사실대로 — 영구 손상보다 '피로'를 말하는 건강 도구
+IDEA: 깜깜한 침실에서 폰 화면만 빛나는 장면 — 화면 빛이 눈을 비춘다
+PICTURE: 큰 눈 일러스트, 점수에 따라 충혈·눈꺼풀 처짐이 실시간 변화 + 큰 점수
+COLOUR: 밤하늘 남색 #10142e 지배, 보조 #1c2350, 폰 화면 빛 #ffcf6b 강조, 충혈 #e5484d
+TYPE: IBM Plex Sans KR 본문/숫자, Gowun Dodum 제목
+LAYOUT: 위 결과(눈+점수) / 아래 입력 / 그다음 해석·회복법·주의사항
+*/
+:root{color-scheme:dark;--bg:#10142e;--bg2:#1c2350;--ink:#eef0ff;--mute:#a9afd6;--glow:#ffcf6b;--red:#e5484d;--line:#2d3570}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 "IBM Plex Sans KR",system-ui,sans-serif;overflow-x:clip}
+h1,h2{font-family:"Gowun Dodum","IBM Plex Sans KR",sans-serif;font-weight:400;line-height:1.15;text-wrap:balance;margin:0}
+h1{font-size:clamp(28px,5vw,44px)}h2{font-size:26px;margin-bottom:14px}
+.band{padding:clamp(24px,4vw,56px) max(5vw,16px)}
+.wrap{max-width:1100px;margin:0 auto}
+.hero{background:radial-gradient(ellipse at 70% 40%,#2a2f6b 0%,var(--bg) 65%)}
+.sub{color:var(--mute);margin:8px 0 0;max-width:62ch}
+.result{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:28px;align-items:center;margin-top:24px}
+.fig{position:relative;aspect-ratio:16/10}.fig svg{position:absolute;inset:0;width:100%;height:100%}
+.score{font-size:clamp(64px,12vw,120px);font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.score small{font-size:22px;color:var(--mute);font-weight:400}
+.lvl{display:inline-block;margin-top:8px;padding:4px 14px;border-radius:99px;font-weight:600;font-size:17px}
+.meter{height:12px;border-radius:99px;background:var(--line);margin:18px 0 10px;overflow:hidden}
+.meter i{display:block;height:100%;border-radius:99px;transition:width .4s,background .4s}
+.facts{display:grid;gap:6px;margin-top:12px;font-size:15px;color:var(--mute)}
+.facts b{color:var(--ink);font-weight:600}
+.inputs{background:var(--bg2)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:22px}
+.q label.t{display:block;font-weight:600;margin-bottom:8px}
+.q .v{color:var(--glow);font-weight:700;white-space:nowrap}
+input[type=range]{width:100%;height:44px;accent-color:var(--glow)}
+.seg{display:flex;flex-wrap:wrap;gap:8px}
+.seg button{flex:1 1 auto;min-height:44px;padding:8px 12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:15px;cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--glow);color:#1a1530;border-color:var(--glow);font-weight:600}
+.seg button:focus-visible,input:focus-visible{outline:3px solid var(--glow);outline-offset:2px}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:28px}
+.card{border-top:1px solid var(--line);padding-top:16px}
+ul{margin:0;padding-left:1.2em}li{margin:6px 0}
+.myth{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.myth div{padding:16px 18px}.myth div:first-child{background:#191f47}
+.myth h3{margin:0 0 6px;font-size:16px}
+.warn{background:#2a1420;border:1px solid #5a2533;border-radius:14px;padding:16px 18px}
+.note{font-size:13px;color:var(--mute);margin-top:18px}
+@media(max-width:700px){.result{grid-template-columns:1fr}.myth{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<section class="band hero"><div class="wrap">
+  <p style="margin:0 0 6px;color:var(--glow);font-weight:700;letter-spacing:.02em">구해줘, 내 눈 · Save My Eyes</p>
+  <h1>오늘 밤, 내 눈은 얼마나 지쳤을까</h1>
+  <p class="sub">어두운 곳에서 폰을 본 시간과 자세를 넣으면 오늘 밤 눈의 <b>피로도</b>와 회복에 걸릴 시간을 추정합니다. 시력이 몇 디옵터 떨어졌는지를 재는 앱은 아닙니다. 그건 안과 검사로만 알 수 있어요.</p>
+  <div class="result">
+    <div class="fig"><svg id="eye" viewBox="0 0 400 250" role="img" aria-label="피로도에 따라 변하는 눈 그림"></svg></div>
+    <div>
+      <div class="score" id="score">0<small> / 100</small></div>
+      <div class="lvl" id="lvl">가벼움</div>
+      <div class="meter"><i id="bar"></i></div>
+      <div class="facts" id="facts"></div>
+    </div>
+  </div>
+</div></section>
+
+<section class="band inputs"><div class="wrap">
+  <h2>오늘 밤 상황</h2>
+  <div class="grid">
+    <div class="q"><label class="t" for="hours">본 시간 <span class="v" id="hoursV"></span></label>
+      <input type="range" id="hours" min="0.5" max="8" step="0.5" value="3"></div>
+    <div class="q"><label class="t" for="dist">눈과 화면 거리 <span class="v" id="distV"></span></label>
+      <input type="range" id="dist" min="10" max="50" step="5" value="20"></div>
+    <div class="q"><span class="t" style="display:block;font-weight:600;margin-bottom:8px">방 밝기</span><div class="seg" data-k="room"></div></div>
+    <div class="q"><span class="t" style="display:block;font-weight:600;margin-bottom:8px">화면 밝기</span><div class="seg" data-k="bright"></div></div>
+    <div class="q"><span class="t" style="display:block;font-weight:600;margin-bottom:8px">중간에 쉬었나요</span><div class="seg" data-k="brk"></div></div>
+    <div class="q"><span class="t" style="display:block;font-weight:600;margin-bottom:8px">자세</span><div class="seg" data-k="pose"></div></div>
+    <div class="q"><span class="t" style="display:block;font-weight:600;margin-bottom:8px">야간모드(블루라이트 필터)</span><div class="seg" data-k="night"></div></div>
+    <div class="q"><span class="t" style="display:block;font-weight:600;margin-bottom:8px">지금 눈 상태</span><div class="seg" data-k="feel"></div></div>
+  </div>
+</div></section>
+
+<section class="band"><div class="wrap">
+  <div class="cols">
+    <div class="card"><h2>지금 눈에 일어나는 일</h2><ul id="what"></ul></div>
+    <div class="card"><h2>오늘 밤 회복법</h2><ul id="fix"></ul></div>
+  </div>
+</div></section>
+
+<section class="band" style="padding-top:0"><div class="wrap">
+  <h2>그래서, 시력이 나빠진 건가요?</h2>
+  <div class="myth">
+    <div><h3>하룻밤으로는 거의 아니에요</h3>미국안과학회 쪽 설명은, 화면이 눈을 영구적으로 망가뜨린다는 근거는 없고 사람들이 겪는 건 대부분 <b>눈의 피로(디지털 눈 피로)</b>라는 것입니다. 깜빡임이 줄어 건조해지고, 가까이 초점을 오래 맞춰 근육이 지칩니다. 자고 나면 대개 풀립니다.</div>
+    <div><h3>쌓이면 신경 쓸 부분</h3>가까운 거리에서 오래 보는 습관은 특히 <b>어린이·청소년의 근시 진행</b>과 관련이 있다고 알려져 있습니다. 성인은 영향이 작지만, 밤 화면 빛은 <b>잠드는 걸 늦추고</b> 수면의 질을 떨어뜨립니다.</div>
+  </div>
+  <div class="warn" style="margin-top:18px"><b>이럴 땐 안과로:</b> 자고 일어나도 흐림이 계속될 때, 눈 통증·심한 충혈, 갑자기 한쪽이 안 보이거나 번쩍이는 빛·검은 점이 늘어날 때.</div>
+  <p class="note">점수는 본 시간·거리·밝기·휴식 같은 알려진 피로 요인을 묶은 추정 모델이며 의학적 측정이 아닙니다. · <a href="privacy.html" style="color:var(--glow)">개인정보처리방침</a></p>
+</div></section>
+
+<script>
+{
+const opts={
+  room:[["dark","완전 깜깜",1.25],["dim","무드등",1.1],["lit","불 켬",1]],
+  bright:[["hi","밝게",1.15],["mid","중간",1],["lo","어둡게",.92]],
+  brk:[["no","거의 안 쉼",1.2],["some","가끔",1],["rule","20분마다",.8]],
+  pose:[["side","옆으로 누워(한쪽 눈)",1.1],["back","바로 누워",1.05],["sit","앉아서",1]],
+  night:[["on","켬",.97],["off","끔",1]],
+  feel:[["ok","괜찮음",1],["dry","뻑뻑·따가움",1.1],["blur","흐릿함",1.15]]
+};
+const st={room:"dark",bright:"mid",brk:"no",pose:"side",night:"off",feel:"dry"};
+try{Object.assign(st,JSON.parse(localStorage.getItem("eyeSt")||"{}"))}catch(e){}
+const $=id=>document.getElementById(id);
+const hours=$("hours"),dist=$("dist");
+try{const h=localStorage.getItem("eyeH"),d=localStorage.getItem("eyeD");if(h)hours.value=h;if(d)dist.value=d}catch(e){}
+
+document.querySelectorAll(".seg").forEach(g=>{
+  const k=g.dataset.k;
+  g.innerHTML=opts[k].map(o=>`<button type="button" data-v="${o[0]}">${o[1]}</button>`).join("");
+  g.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;st[k]=b.dataset.v;calc()});
+});
+hours.addEventListener("input",calc);dist.addEventListener("input",calc);
+
+const f=k=>opts[k].find(o=>o[0]===st[k])[2];
+function distF(d){return d<20?1.4:d<30?1.2:d<40?1:.85}
+
+function eye(s){
+  const t=s/100, lid=40+t*55, red=t;
+  let veins="";
+  const vs=[[60,125,110,110,95,140],[70,150,115,160,100,175],[340,120,290,112,305,95],[332,150,288,158,300,178],[50,135,85,128,80,105],[350,140,315,135,325,160]];
+  vs.forEach((v,i)=>{if(t>i*.13)veins+=`<path d="M${v[0]} ${v[1]} Q${v[2]} ${v[3]} ${v[4]} ${v[5]}" stroke="#e5484d" stroke-width="${1.4+t*1.6}" fill="none" opacity="${Math.min(1,red*1.3)}" stroke-linecap="round"/>`});
+  $("eye").innerHTML=`
+  <defs>
+    <radialGradient id="sc" cx="50%" cy="50%" r="60%"><stop offset="0" stop-color="#fffdf6"/><stop offset="1" stop-color="${t>.5?'#f3c9c4':'#e9e6f2'}"/></radialGradient>
+    <radialGradient id="ir" cx="45%" cy="40%" r="60%"><stop offset="0" stop-color="#8a6a3e"/><stop offset="1" stop-color="#3b2614"/></radialGradient>
+    <radialGradient id="gl" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#ffcf6b" stop-opacity=".55"/><stop offset="1" stop-color="#ffcf6b" stop-opacity="0"/></radialGradient>
+    <clipPath id="cl"><path d="M30 130 Q200 20 370 130 Q200 240 30 130Z"/></clipPath>
+  </defs>
+  <ellipse cx="200" cy="140" rx="200" ry="110" fill="url(#gl)"/>
+  <path d="M30 130 Q200 20 370 130 Q200 240 30 130Z" fill="url(#sc)"/>
+  <g clip-path="url(#cl)">
+    ${veins}
+    <circle cx="200" cy="130" r="62" fill="url(#ir)"/>
+    <circle cx="200" cy="130" r="${30-t*12}" fill="#0b0b14"/>
+    <circle cx="180" cy="110" r="12" fill="#fff" opacity=".85"/>
+    <rect x="150" y="118" width="16" height="26" rx="3" fill="#ffcf6b" opacity=".6"/>
+    <path d="M0 0 H400 V${lid} Q200 ${lid+40-t*10} 0 ${lid}Z" fill="#2a2f6b"/>
+  </g>
+  <path d="M30 130 Q200 ${20+t*30} 370 130" stroke="#0b0d22" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <path d="M30 130 Q200 240 370 130" stroke="#0b0d22" stroke-width="3" fill="none" opacity=".6"/>`;
+}
+
+function calc(){
+  const h=+hours.value,d=+dist.value;
+  $("hoursV").textContent=h+"시간";$("distV").textContent=d+"cm";
+  document.querySelectorAll(".seg").forEach(g=>g.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.v===st[g.dataset.k])));
+  let s=h*13*distF(d)*f("room")*f("bright")*f("brk")*f("pose")*f("night")*f("feel");
+  s=Math.max(3,Math.min(100,Math.round(s)));
+  const L=s<=25?["가벼움","#3fb27f","30분~1시간","눈 감고 잠깐 쉬면 대부분 풀려요."]:
+          s<=50?["보통","#ffcf6b","하룻밤 숙면","오늘 푹 자면 내일 아침엔 거의 회복됩니다."]:
+          s<=75?["높음","#ff9a4a","1~2일","내일도 뻑뻑할 수 있어요. 내일 밤은 화면을 줄이세요."]:
+                ["매우 높음","#e5484d","2~3일","이런 밤이 자주라면 습관을 바꿀 때입니다."];
+  $("score").innerHTML=s+"<small> / 100</small>";
+  const lv=$("lvl");lv.textContent="피로도 "+L[0];lv.style.background=L[1];lv.style.color="#15122a";
+  const bar=$("bar");bar.style.width=s+"%";bar.style.background=L[1];
+  const blinks=Math.round(h*60*(17-6));
+  $("facts").innerHTML=`<div>예상 회복: <b>${L[2]}</b> — ${L[3]}</div>
+    <div>덜 깜빡인 횟수(추정): <b>약 ${blinks.toLocaleString()}회</b> <span style="font-size:13px">(평소 분당 15~20회 → 화면 볼 때 5~7회)</span></div>
+    <div>영구적인 시력 저하: <b>하룻밤으로는 가능성 낮음</b></div>`;
+  const w=["가까이 초점을 맞추느라 눈 속 근육(모양체)이 계속 긴장 → 멀리 볼 때 잠깐 흐릿함"];
+  w.push("깜빡임이 줄어 눈물막이 마름 → 뻑뻑함, 따가움, 충혈");
+  if(st.room!=="lit")w.push("어두운 방과 밝은 화면의 밝기 차이가 커서 동공이 계속 조절 → 더 빨리 지침");
+  if(st.pose==="side")w.push("한쪽 눈만 베개에 묻고 보면, 폰을 내려놓은 뒤 그 눈이 몇 분간 잘 안 보일 수 있어요(일시적, 무해). 양쪽 눈으로 보면 예방됩니다.");
+  if(h>=2)w.push("자기 전 밝은 화면은 멜라토닌 분비를 늦춰 잠드는 시간이 밀리고 수면이 얕아질 수 있어요");
+  if(d<25)w.push(d+"cm는 꽤 가까워요. 30~40cm만 떨어져도 초점 부담이 확 줄어듭니다");
+  $("what").innerHTML=w.map(x=>`<li>${x}</li>`).join("");
+  const fx=["지금 폰 내려놓고 눈 감고 1~2분 쉬기, 의식적으로 천천히 10번 깜빡이기"];
+  if(st.feel!=="ok")fx.push("뻑뻑하면 인공눈물(무방부제) 한두 방울, 또는 따뜻한 수건 찜질 5분");
+  fx.push("내일부터 20-20-20: 20분마다 6m(20피트) 먼 곳을 20초 보기");
+  if(st.room!=="lit")fx.push("밤에 볼 거면 무드등이라도 켜서 화면과 방 밝기 차이 줄이기");
+  if(st.bright==="hi")fx.push("화면 밝기는 주변 밝기에 맞춰 낮추기(자동 밝기 켜기)");
+  fx.push("화면은 팔 길이 가까이(30~40cm), 바로 앉거나 누워 양쪽 눈으로 보기");
+  $("fix").innerHTML=fx.map(x=>`<li>${x}</li>`).join("");
+  eye(s);
+  try{localStorage.setItem("eyeSt",JSON.stringify(st));localStorage.setItem("eyeH",h);localStorage.setItem("eyeD",d)}catch(e){}
+}
+calc();
+if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}
+}
+</script>
+</body>
+</html>
