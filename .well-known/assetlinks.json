@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "io.github.see1see1.savemyeyes",
+        "sha256_cert_fingerprints": ["36:AE:96:C2:AB:8D:08:D5:4F:BF:C5:33:5B:CA:87:63:FE:28:C1:B5:4F:8C:8F:31:DD:4A:95:AA:C1:B6:A8:56"]
+      }
+    }]
