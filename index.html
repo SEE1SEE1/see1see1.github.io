@@ -55,8 +55,13 @@ button{font:inherit;color:inherit}
 @keyframes zz{0%,100%{transform:translate(0,0);opacity:.5}50%{transform:translate(6px,-8px);opacity:1}}
 .nuni .spark{animation:tw 1.8s ease-in-out infinite;transform-origin:50% 50%;transform-box:fill-box}
 @keyframes tw{0%,100%{opacity:.4}50%{opacity:1}}
-.nuni.jump .bob{animation:jump .6s ease}
-@keyframes jump{0%,100%{transform:translateY(0)}40%{transform:translateY(-26px) scale(1.03,.97)}}
+.nuniBtn{display:block;margin:6px auto 0;padding:0;border:0;background:none;cursor:pointer;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation;border-radius:40px}
+.nuniBtn .nuni{margin:0;pointer-events:none}
+.nuniBtn.jump{animation:jump .6s ease}
+.nuniBtn:active{transform:scale(.97)}
+@keyframes jump{0%,100%{transform:translateY(0)}35%{transform:translateY(-28px) scale(1.04,.96)}70%{transform:translateY(0) scale(.98,1.02)}}
+.heart{position:absolute;left:50%;top:45%;pointer-events:none;animation:heart 1.1s ease-out forwards}
+@keyframes heart{0%{transform:translate(-50%,0) scale(.4);opacity:0}20%{opacity:1}100%{transform:translate(calc(-50% + var(--dx)),-150px) scale(1.2);opacity:0}}
 .name{display:flex;justify-content:center;gap:8px;align-items:center;margin-top:2px;color:var(--mute);font-size:14px}
 .name b{color:var(--ink);font-size:16px}
 .pill{padding:2px 10px;border-radius:99px;font-size:13px;font-weight:600}
@@ -204,7 +209,7 @@ nav.tabs button[aria-selected=true]{color:var(--glow)}
 <section class="view on" id="v-home">
   <div class="stage">
     <div class="bubble" id="say">오늘 밤은 어땠어?</div>
-    <svg class="nuni" id="nuniHome" role="img" aria-label="눈 캐릭터 눈이"></svg>
+    <button type="button" class="nuniBtn" id="nuniTap" aria-label="눈이 쓰다듬기"><svg class="nuni" id="nuniHome" aria-hidden="true"></svg></button>
     <div class="name"><b>눈이</b><span class="pill" id="statePill"></span><span id="whenTag"></span></div>
   </div>
 
@@ -507,8 +512,14 @@ function renderHome(){
   const TIPS={"본 시간":"오늘 밤은 폰 보는 시간을 30분만 줄여 보세요. 눈이 배터리가 10% 이상 올라가요.","화면 거리":"폰을 팔 길이만큼(30~40cm) 떨어뜨리면 초점 근육이 훨씬 덜 지쳐요.","방·화면 밝기 차이":"깜깜한 방에서 밝은 화면은 눈에 가장 힘들어요. 무드등을 켜거나 화면을 어둡게 해 보세요.","중간 휴식":"20분마다 '휴식' 탭에서 20초 눈 휴식을 해 보세요. 눈이가 같이 해 줘요.","자세":"옆으로 누워 한쪽 눈으로 보면 양쪽 눈이 따로 놀아요. 바로 누워 두 눈으로 보세요.","야간모드":"야간모드를 켜면 밤 화면 빛이 부드러워져 잠들기 쉬워져요.","시작 시각":"자정 넘어 보기 시작하면 수면이 짧아져요. 오늘은 조금 일찍 시작하고 일찍 끝내 봐요."};
   $("tip").innerHTML=`<b>오늘의 한 가지</b> — ${TIPS[worst[0]]}`;
 }
-$("nuniHome").addEventListener("click",()=>{const n=$("nuniHome");n.classList.remove("jump","blinknow");void n.offsetWidth;n.classList.add("jump","blinknow");
-  const s=todayData().s,si=stIdx(s);$("say").textContent=["간지러워! 헤헤","나 잘 지켜 줘서 고마워","조금 쉬고 싶어…","나 진짜 힘들어…"][si]});
+const TAPS=[["간지러워! 헤헤","나 잘 지켜 줘서 고마워","오늘 밤 하늘 예쁘다!","한 번 더 쓰다듬어 줘!"],["으음… 졸려","쓰다듬어 주니까 좋다","우리 곧 자는 거지?","하암~ 눈 감을래"],["아야, 눈이 따가워…","20초만 같이 쉬자","폰 조금만 멀리 해 줘","충혈됐어… 쉬고 싶어"],["나 진짜 힘들어…","구해줘…!","오늘은 여기까지 하자","눈물 나… 쉬게 해 줘"]];
+let tapN=0;
+function petNuni(){const btn=$("nuniTap"),svg=$("nuniHome");
+  btn.classList.remove("jump");svg.classList.remove("blinknow");void btn.offsetWidth;btn.classList.add("jump");svg.classList.add("blinknow");
+  const si=stIdx(todayData().s);$("say").textContent=TAPS[si][tapN++%4];
+  const stg=btn.parentNode;for(let i=0;i<3;i++){const h=document.createElement("span");h.className="heart";h.style.setProperty("--dx",(i-1)*40+"px");h.style.animationDelay=i*.12+"s";
+    h.innerHTML='<svg width="26" height="24" viewBox="0 0 26 24"><path d="M13 22 C2 14 0 9 3 5 C6 1 11 2 13 6 C15 2 20 1 23 5 C26 9 24 14 13 22Z" fill="#ff8fb1"/></svg>';stg.appendChild(h);setTimeout(()=>h.remove(),1500)}}
+$("nuniTap").addEventListener("click",petNuni);
 
 /* ---------- 체크 ---------- */
 document.querySelectorAll(".q[data-k]").forEach(q=>{
@@ -552,7 +563,7 @@ $("save").onclick=()=>{
   const k=streak();switchView("home");
   const gift={3:"수면 모자",7:"별 배지",30:"왕관"}[k];
   if(gift&&k>before){confetti();toast(`${k}일 연속! 눈이가 '${gift}'를 받았어요`)}else{toast(k>1?`저장 완료! ${k}일 연속 기록 중`:"저장 완료! 내일도 눈이랑 기록해요")}
-  const n=$("nuniHome");n.classList.remove("jump");void n.offsetWidth;n.classList.add("jump");
+  const n=$("nuniTap");n.classList.remove("jump");void n.offsetWidth;n.classList.add("jump");
 };
 
 /* ---------- 휴식 ---------- */
