@@ -1,5 +1,5 @@
 // 오프라인에서도 앱이 열리도록 앱 파일을 저장해 두는 서비스 워커
-const CACHE = "eye-fatigue-v1";
+const CACHE = "eye-fatigue-v3";
 const FILES = [
   "./",
   "./index.html",

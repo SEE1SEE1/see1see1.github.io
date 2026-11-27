@@ -2,201 +2,737 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>구해줘, 내 눈 · Save My Eyes</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>구해줘, 내 눈</title>
 <meta name="theme-color" content="#10142e">
-<meta name="description" content="어두운 곳에서 폰을 본 오늘 밤, 눈의 피로도와 회복법을 알려주는 자가 점검(참고용) 앱">
+<meta name="description" content="구해줘, 내 눈 - 매일 밤 눈 건강 기록과 그래프. 눈 캐릭터 '눈이'와 함께 밤마다 눈 피로를 체크하고 기록해요.">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icons/icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="구해줘, 내 눈">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=IBM+Plex+Sans+KR:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 /*
-VOICE: 차분한 밤, 겁주지 않고 사실대로 — 영구 손상보다 '피로'를 말하는 건강 도구
-IDEA: 깜깜한 침실에서 폰 화면만 빛나는 장면 — 화면 빛이 눈을 비춘다
-PICTURE: 큰 눈 일러스트, 점수에 따라 충혈·눈꺼풀 처짐이 실시간 변화 + 큰 점수
-COLOUR: 밤하늘 남색 #10142e 지배, 보조 #1c2350, 폰 화면 빛 #ffcf6b 강조, 충혈 #e5484d
-TYPE: IBM Plex Sans KR 본문/숫자, Gowun Dodum 제목
-LAYOUT: 위 결과(눈+점수) / 아래 입력 / 그다음 해석·회복법·주의사항
+VOICE: 귀여운 밤의 친구 '눈이'가 말을 거는 다정한 앱, 숫자는 솔직하게
+IDEA: 내가 눈을 아끼면 눈이가 웃고 자란다 (Finch식 돌봄 + Oura식 점수 링 + Duolingo식 연속 기록)
+PICTURE: 표정·깜빡임·시선이 살아 있는 캐릭터 눈이, 컨디션 링, 요인 막대
+COLOUR: 밤 남색 #10142e, 눈이 보라 #5058c4, 화면 빛 #ffcf6b, 위험 #e5484d, 회복 #3fb27f
+TYPE: Gowun Dodum 제목·말풍선, IBM Plex Sans KR 본문·숫자
+LAYOUT: 상단 바(이름·연속 기록) / 화면 / 하단 탭 4개(홈·체크·휴식·기록)
 */
-:root{color-scheme:dark;--bg:#10142e;--bg2:#1c2350;--ink:#eef0ff;--mute:#a9afd6;--glow:#ffcf6b;--red:#e5484d;--line:#2d3570}
-*{box-sizing:border-box;min-width:0}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 "IBM Plex Sans KR",system-ui,sans-serif;overflow-x:clip}
-h1,h2{font-family:"Gowun Dodum","IBM Plex Sans KR",sans-serif;font-weight:400;line-height:1.15;text-wrap:balance;margin:0}
-h1{font-size:clamp(28px,5vw,44px)}h2{font-size:26px;margin-bottom:14px}
-.band{padding:clamp(24px,4vw,56px) max(5vw,16px)}
-.wrap{max-width:1100px;margin:0 auto}
-.hero{background:radial-gradient(ellipse at 70% 40%,#2a2f6b 0%,var(--bg) 65%)}
-.sub{color:var(--mute);margin:8px 0 0;max-width:62ch}
-.result{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:28px;align-items:center;margin-top:24px}
-.fig{position:relative;aspect-ratio:16/10}.fig svg{position:absolute;inset:0;width:100%;height:100%}
-.score{font-size:clamp(64px,12vw,120px);font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
-.score small{font-size:22px;color:var(--mute);font-weight:400}
-.lvl{display:inline-block;margin-top:8px;padding:4px 14px;border-radius:99px;font-weight:600;font-size:17px}
-.meter{height:12px;border-radius:99px;background:var(--line);margin:18px 0 10px;overflow:hidden}
-.meter i{display:block;height:100%;border-radius:99px;transition:width .4s,background .4s}
-.facts{display:grid;gap:6px;margin-top:12px;font-size:15px;color:var(--mute)}
-.facts b{color:var(--ink);font-weight:600}
-.inputs{background:var(--bg2)}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:22px}
-.q label.t{display:block;font-weight:600;margin-bottom:8px}
-.q .v{color:var(--glow);font-weight:700;white-space:nowrap}
-input[type=range]{width:100%;height:44px;accent-color:var(--glow)}
-.seg{display:flex;flex-wrap:wrap;gap:8px}
-.seg button{flex:1 1 auto;min-height:44px;padding:8px 12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:15px;cursor:pointer}
-.seg button[aria-pressed=true]{background:var(--glow);color:#1a1530;border-color:var(--glow);font-weight:600}
-.seg button:focus-visible,input:focus-visible{outline:3px solid var(--glow);outline-offset:2px}
-.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:28px}
-.card{border-top:1px solid var(--line);padding-top:16px}
-ul{margin:0;padding-left:1.2em}li{margin:6px 0}
-.myth{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:0;border:1px solid var(--line);border-radius:14px;overflow:hidden}
-.myth div{padding:16px 18px}.myth div:first-child{background:#191f47}
-.myth h3{margin:0 0 6px;font-size:16px}
-.warn{background:#2a1420;border:1px solid #5a2533;border-radius:14px;padding:16px 18px}
-.note{font-size:13px;color:var(--mute);margin-top:18px}
-@media(max-width:700px){.result{grid-template-columns:1fr}.myth{grid-template-columns:1fr}}
-@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+:root{color-scheme:dark;--bg:#10142e;--bg2:#171d44;--card:#1f2655;--line:#2f3873;--ink:#eef0ff;--mute:#a9afd6;--glow:#ffcf6b;--red:#e5484d;--org:#ff9a4a;--grn:#3fb27f;--pur:#5058c4;--sb:env(safe-area-inset-bottom,0px);--st:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box;min-width:0;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:radial-gradient(1200px 600px at 50% -200px,#232a6b 0%,var(--bg) 60%) fixed,var(--bg);color:var(--ink);font:16px/1.55 "IBM Plex Sans KR",system-ui,sans-serif;overflow-x:clip;padding-bottom:calc(92px + var(--sb))}
+h1,h2,h3{font-family:"Gowun Dodum","IBM Plex Sans KR",sans-serif;font-weight:400;line-height:1.2;margin:0;text-wrap:balance}
+button{font:inherit;color:inherit}
+.wrap{max-width:720px;margin:0 auto;padding:0 16px}
+.top{position:sticky;top:0;z-index:20;background:rgba(16,20,46,.86);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);padding-top:var(--st)}
+.top .wrap{display:flex;align-items:center;gap:10px;min-height:58px}
+.top b{font-family:"Gowun Dodum",sans-serif;font-weight:400;font-size:21px;line-height:1.1}
+.top small{display:block;color:var(--mute);font-size:12px}
+.chip{margin-left:auto;display:inline-flex;align-items:center;gap:6px;padding:6px 12px 6px 8px;border-radius:99px;background:#2b2350;border:1px solid #5a4890;font-weight:700;white-space:nowrap}
+.chip svg{flex:none}
+.view{display:none;padding-top:8px}.view.on{display:block;animation:in .35s ease}
+@keyframes in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.card{background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.01)),var(--bg2);border:1px solid var(--line);border-radius:24px;padding:16px}
+/* 홈 */
+.stage{position:relative;text-align:center;padding:6px 0 0}
+.bubble{position:relative;display:inline-block;max-width:92%;background:#fff;color:#1d2050;font-family:"Gowun Dodum",sans-serif;font-size:19px;line-height:1.35;padding:12px 18px;border-radius:20px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+.bubble::after{content:"";position:absolute;left:50%;bottom:-10px;margin-left:-10px;border:10px solid transparent;border-top-color:#fff;border-bottom:0}
+.nuni{display:block;width:min(78vw,300px);height:auto;aspect-ratio:300/320;margin:6px auto 0;cursor:pointer;touch-action:manipulation}
+.nuni .bob{animation:bob 3.2s ease-in-out infinite;transform-origin:50% 100%}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.nuni .blink{transform-box:fill-box;transform-origin:50% 0;transform:scaleY(0);animation:blink 5.5s infinite}
+.nuni.blinknow .blink{animation:blink1 .35s}
+@keyframes blink{0%,93%,100%{transform:scaleY(0)}96%{transform:scaleY(1)}}
+@keyframes blink1{0%,100%{transform:scaleY(0)}50%{transform:scaleY(1)}}
+.nuni .tear{animation:drop 2.2s ease-in infinite}.nuni .t2{animation-delay:1.1s}
+@keyframes drop{0%{transform:translateY(0);opacity:0}15%{opacity:1}100%{transform:translateY(46px);opacity:0}}
+.nuni .zz{animation:zz 2.6s ease-in-out infinite}
+@keyframes zz{0%,100%{transform:translate(0,0);opacity:.5}50%{transform:translate(6px,-8px);opacity:1}}
+.nuni .spark{animation:tw 1.8s ease-in-out infinite;transform-origin:50% 50%;transform-box:fill-box}
+@keyframes tw{0%,100%{opacity:.4}50%{opacity:1}}
+.nuni.jump .bob{animation:jump .6s ease}
+@keyframes jump{0%,100%{transform:translateY(0)}40%{transform:translateY(-26px) scale(1.03,.97)}}
+.name{display:flex;justify-content:center;gap:8px;align-items:center;margin-top:2px;color:var(--mute);font-size:14px}
+.name b{color:var(--ink);font-size:16px}
+.pill{padding:2px 10px;border-radius:99px;font-size:13px;font-weight:600}
+.score{display:grid;grid-template-columns:auto minmax(0,1fr);gap:18px;align-items:center;margin-top:14px}
+.ring{position:relative;width:132px;height:132px}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring .rv{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
+.ring .rv b{display:block;font-size:40px;line-height:1;font-variant-numeric:tabular-nums}
+.ring .rv span{font-size:12px;color:var(--mute)}
+.score h2{font-size:24px}
+.score p{margin:4px 0 0;color:var(--mute);font-size:15px}
+.contrib{display:grid;gap:12px;margin-top:6px}
+.ct{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:center}
+.ct span{font-size:15px}
+.ct em{font-style:normal;font-size:13px;font-weight:700;white-space:nowrap}
+.ct .tr{grid-column:1/-1;height:8px;border-radius:99px;background:var(--line);overflow:hidden}
+.ct .tr i{display:block;height:100%;border-radius:99px;transition:width .6s}
+.sec{margin-top:16px}
+.sec h3{font-size:19px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.sec h3 small{font-family:"IBM Plex Sans KR",sans-serif;font-size:13px;color:var(--mute)}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;text-align:center}
+.week div{font-size:12px;color:var(--mute)}
+.week i{display:grid;place-items:center;margin:4px auto 0;width:36px;height:36px;border-radius:50%;border:2px dashed var(--line);font-style:normal;font-weight:700;font-size:13px;color:#15122a}
+.week i.on{border:0}
+.week .today{color:var(--glow);font-weight:700}
+.grow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.grow div{border-radius:16px;padding:10px;text-align:center;background:var(--card);border:1px solid var(--line);font-size:13px;color:var(--mute)}
+.grow div.got{border-color:var(--glow);color:var(--ink)}
+.grow svg{display:block;margin:0 auto 4px}
+.prog{height:10px;border-radius:99px;background:var(--line);overflow:hidden;margin-top:10px}.prog i{display:block;height:100%;background:linear-gradient(90deg,#ffcf6b,#ff9a4a)}
+.cta{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:8px;margin-top:14px}
+.btn{min-height:52px;padding:0 16px;border-radius:16px;border:1px solid var(--line);background:var(--card);cursor:pointer;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-align:center}
+.btn.primary{background:var(--glow);color:#1a1530;border-color:var(--glow);box-shadow:0 6px 22px rgba(255,207,107,.25)}
+.btn:active{transform:scale(.98)}
+.btn.sm{min-height:44px;font-size:15px;border-radius:12px}
+.tip{display:flex;gap:12px;align-items:flex-start}
+.tip p{margin:0;color:var(--mute);font-size:15px}
+.tip b{color:var(--ink)}
+/* 체크 */
+.mini{position:sticky;top:calc(58px + var(--st));z-index:10;display:grid;grid-template-columns:72px minmax(0,1fr) auto;gap:12px;align-items:center;background:rgba(23,29,68,.95);backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:20px;padding:8px 14px 8px 8px}
+.mini svg{width:72px;height:77px}
+.mini b{font-size:30px;line-height:1;font-variant-numeric:tabular-nums}
+.mini small{display:block;color:var(--mute);font-size:13px}
+.mini .ml{font-weight:700;font-size:14px;white-space:nowrap}
+.q{margin-top:20px}
+.q h3{font-size:19px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.q h3 em{font-style:normal;color:var(--glow);font-family:"IBM Plex Sans KR",sans-serif;font-size:16px;font-weight:700;white-space:nowrap}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,140px),1fr));gap:8px}
+.cards button{min-height:66px;padding:10px 12px;border-radius:18px;border:1.5px solid var(--line);background:var(--card);text-align:left;cursor:pointer;transition:transform .12s,background .2s,border-color .2s;display:flex;gap:10px;align-items:center}
+.cards button svg{flex:none}
+.cards button b{display:block;font-size:16px}
+.cards button span{display:block;font-size:13px;color:var(--mute)}
+.cards button[aria-pressed=true]{background:#3a3260;border-color:var(--glow);box-shadow:0 0 0 1px var(--glow) inset}
+.cards button[aria-pressed=true] b{color:var(--glow)}
+.cards button:active{transform:scale(.97)}
+.stepper{display:grid;grid-template-columns:64px 1fr 64px;gap:8px;align-items:center;background:var(--card);border:1.5px solid var(--line);border-radius:18px;padding:8px}
+.stepper button{height:56px;border-radius:14px;border:0;background:var(--bg2);font-size:28px;cursor:pointer}
+.stepper output{text-align:center;font-size:30px;font-weight:700;font-variant-numeric:tabular-nums}
+.stepper output small{font-size:16px;color:var(--mute);font-weight:400}
+.quick{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.quick button{min-height:40px;padding:0 14px;border-radius:99px;border:1px solid var(--line);background:transparent;color:var(--mute);cursor:pointer}
+.quick button.on{border-color:var(--glow);color:var(--glow)}
+.timebox{display:flex;gap:10px;flex-wrap:wrap}
+input[type=time],input[type=date]{min-height:52px;font:inherit;font-size:19px;font-weight:600;padding:0 14px;border-radius:14px;border:1.5px solid var(--line);background:var(--card);color:var(--ink);color-scheme:dark}
+.savewrap{position:sticky;bottom:calc(80px + var(--sb));z-index:12;margin-top:22px;padding-top:8px}
+.savewrap .btn{width:100%;min-height:58px;font-size:18px}
+button:focus-visible,input:focus-visible,label:focus-visible{outline:3px solid var(--glow);outline-offset:2px}
+/* 휴식 */
+.rest{text-align:center}
+.rest .big{position:relative;width:min(72vw,280px);aspect-ratio:1;margin:10px auto 0}
+.rest .big>svg.rg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
+.rest .big .nuni{position:absolute;left:12%;top:8%;width:76%;margin:0}
+.rest .cnt{font-size:56px;font-weight:700;line-height:1;margin-top:8px;font-variant-numeric:tabular-nums}
+.rest .step{font-family:"Gowun Dodum",sans-serif;font-size:22px;margin-top:6px}
+.rest p{color:var(--mute);margin:6px 0 0}
+.steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:16px;text-align:left}
+.steps div{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:10px 12px;font-size:14px;color:var(--mute)}
+.steps div.now{border-color:var(--glow);color:var(--ink)}
+.steps b{display:block;color:var(--ink);font-size:15px}
+/* 기록 */
+.seg{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:4px}
+.seg button{min-height:44px;border:0;border-radius:10px;background:transparent;font-weight:600;cursor:pointer;color:var(--mute)}
+.seg button[aria-pressed=true]{background:var(--card);color:var(--ink);box-shadow:0 0 0 1px var(--line) inset}
+.alarm{margin-top:14px;border-radius:20px;padding:16px 18px;background:#2a1626;border:1px solid #5a2533}
+.alarm.good{background:#12291f;border-color:#235a40}
+.alarm b{font-size:18px}.alarm p{margin:6px 0 0;color:#e8d7de}.alarm.good p{color:#cfe8dc}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:8px;margin-top:14px}
+.stats div{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px}
+.stats span{display:block;color:var(--mute);font-size:13px}
+.stats b{display:block;font-size:24px;line-height:1.2;white-space:nowrap;font-variant-numeric:tabular-nums}
+.stats i{font-style:normal;font-size:13px}
+.up{color:#ff8a8d}.down{color:#6fd3a3}
+.chart{margin-top:16px;background:var(--bg2);border:1px solid var(--line);border-radius:20px;padding:14px 14px 8px}
+.chart h3{font-size:18px}.chart p{margin:2px 0 6px;color:var(--mute);font-size:13px}
+.fig{position:relative;height:200px}.fig svg{position:absolute;inset:0;width:100%;height:100%}
+.dist{display:grid;gap:12px;margin:8px 0}
+.dist .row b{font-size:15px;display:block;margin-bottom:4px}
+.bar{display:flex;height:24px;border-radius:8px;overflow:hidden;background:var(--line)}.bar i{display:block;height:100%}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:13px;color:var(--mute);margin-top:4px}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;background:var(--c);vertical-align:-1px}
+.list{margin-top:18px}
+.rec{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.rec .sc{width:52px;height:52px;border-radius:14px;display:grid;place-items:center;font-weight:700;font-size:20px;color:#15122a}
+.rec small{color:var(--mute);font-size:13px;display:block}
+.rec button{min-height:40px;padding:0 12px;border-radius:10px;border:1px solid var(--line);background:transparent;color:var(--mute);cursor:pointer;font-size:14px}
+.rec button.sure{border-color:var(--red);color:#ff8a8d}
+.empty{text-align:center;padding:30px 16px;background:var(--bg2);border:1px dashed var(--line);border-radius:20px;margin-top:14px}
+.empty p{color:var(--mute)}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.btns .btn{min-height:44px;font-size:15px;border-radius:12px}
+.demo-tag{display:inline-block;margin-left:6px;font-size:12px;padding:2px 8px;border-radius:99px;background:#3a3260;color:var(--glow);vertical-align:2px}
+details{margin-top:16px;background:var(--bg2);border:1px solid var(--line);border-radius:18px;padding:4px 16px}
+summary{cursor:pointer;min-height:48px;display:flex;align-items:center;font-weight:600;list-style:none}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";margin-left:auto;color:var(--glow);font-size:22px}
+details[open] summary::after{content:"−"}
+details ul{margin:0 0 14px;padding-left:1.2em}details li{margin:6px 0}
+.note{font-size:13px;color:var(--mute);margin:16px 0 0}.note a{color:var(--glow)}
+.sub{color:var(--mute);font-size:14px}
+.hidden{display:none!important}
+/* 하단 탭 */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(16,20,46,.94);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--line);padding-bottom:var(--sb)}
+nav.tabs .wrap{display:grid;grid-template-columns:repeat(4,1fr);padding:0 6px}
+nav.tabs button{min-height:68px;border:0;background:transparent;color:var(--mute);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:12px;font-weight:600;cursor:pointer}
+nav.tabs button svg{width:26px;height:26px}
+nav.tabs button[aria-selected=true]{color:var(--glow)}
+.toast{position:fixed;left:50%;bottom:calc(90px + var(--sb));transform:translateX(-50%) translateY(20px);opacity:0;background:#fff;color:#15122a;padding:12px 18px;border-radius:14px;font-weight:600;transition:.3s;z-index:40;pointer-events:none;width:max-content;max-width:90vw;text-align:center}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+.confetti{position:fixed;inset:0;pointer-events:none;z-index:35;overflow:hidden}
+.confetti i{position:absolute;top:-12px;width:9px;height:14px;border-radius:2px;animation:fall 1.6s ease-in forwards}
+@keyframes fall{to{transform:translateY(105vh) rotate(540deg)}}
+@media(max-width:380px){.score{grid-template-columns:1fr;justify-items:center;text-align:center}.cta{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
-<section class="band hero"><div class="wrap">
-  <p style="margin:0 0 6px;color:var(--glow);font-weight:700;letter-spacing:.02em">구해줘, 내 눈 · Save My Eyes</p>
-  <h1>오늘 밤, 내 눈은 얼마나 지쳤을까</h1>
-  <p class="sub">어두운 곳에서 폰을 본 시간과 자세를 넣으면 오늘 밤 눈의 <b>피로도</b>와 회복에 걸릴 시간을 추정합니다. 시력이 몇 디옵터 떨어졌는지를 재는 앱은 아닙니다. 그건 안과 검사로만 알 수 있어요.</p>
-  <div class="result">
-    <div class="fig"><svg id="eye" viewBox="0 0 400 250" role="img" aria-label="피로도에 따라 변하는 눈 그림"></svg></div>
-    <div>
-      <div class="score" id="score">0<small> / 100</small></div>
-      <div class="lvl" id="lvl">가벼움</div>
-      <div class="meter"><i id="bar"></i></div>
-      <div class="facts" id="facts"></div>
+<div class="top"><div class="wrap">
+  <svg width="36" height="36" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="21" r="18" fill="#5058c4"/><circle cx="20" cy="19" r="10" fill="#232760"/><circle cx="20" cy="19" r="8.5" fill="#fff"/><circle cx="20" cy="19.5" r="5" fill="#e0901f"/><circle cx="20" cy="19.5" r="2.4" fill="#0b0d22"/><circle cx="18.3" cy="17.6" r="1.3" fill="#fff"/></svg>
+  <div><b>구해줘, 내 눈</b><small>매일 밤 눈 건강 기록과 그래프</small></div>
+  <span class="chip" id="streakChip" title="연속 기록"><svg width="20" height="22" viewBox="0 0 20 22" aria-hidden="true"><path d="M10 1 C12 6 18 8 18 14 a8 8 0 0 1 -16 0 C2 10 5 8 6 5 C7 8 8 9 9 9 C9 6 9 3 10 1Z" fill="#ff9a4a"/><path d="M10 10 C11 13 14 14 14 17 a4 4 0 0 1 -8 0 C6 15 8 14 10 10Z" fill="#ffcf6b"/></svg><span id="streakN">0</span>일</span>
+</div></div>
+
+<main class="wrap">
+<!-- 홈 -->
+<section class="view on" id="v-home">
+  <div class="stage">
+    <div class="bubble" id="say">오늘 밤은 어땠어?</div>
+    <svg class="nuni" id="nuniHome" role="img" aria-label="눈 캐릭터 눈이"></svg>
+    <div class="name"><b>눈이</b><span class="pill" id="statePill"></span><span id="whenTag"></span></div>
+  </div>
+
+  <div class="card score">
+    <div class="ring"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" fill="none" stroke="#2f3873" stroke-width="12"/><circle id="ringArc" cx="60" cy="60" r="52" fill="none" stroke="#ffcf6b" stroke-width="12" stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="326.7" style="transition:stroke-dashoffset .8s,stroke .5s"/></svg>
+      <div class="rv"><div><b id="ringV">0</b><span>눈 컨디션</span></div></div></div>
+    <div><h2 id="ringTitle">-</h2><p id="ringSub">-</p></div>
+  </div>
+
+  <div class="cta">
+    <button class="btn primary" type="button" id="goCheck">오늘 밤 체크하기</button>
+    <button class="btn" type="button" id="goRest">20초 눈 휴식</button>
+  </div>
+
+  <div class="card sec"><h3>컨디션에 영향을 준 것 <small>빨간 막대부터 고쳐 보세요</small></h3><div class="contrib" id="contrib"></div></div>
+
+  <div class="card sec"><h3>이번 주 <small id="weekSum"></small></h3><div class="week" id="week"></div></div>
+
+  <div class="card sec"><h3>눈이 선물 <small id="growSub"></small></h3>
+    <div class="grow" id="grow"></div>
+    <div class="prog"><i id="growBar" style="width:0"></i></div>
+  </div>
+
+  <div class="card sec tip"><svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="19" fill="#2b2350"/><path d="M20 9a8 8 0 0 0-4 15v3h8v-3a8 8 0 0 0-4-15z" fill="#ffcf6b"/><rect x="16" y="29" width="8" height="3" rx="1.5" fill="#ffcf6b"/></svg><p id="tip"></p></div>
+  <p class="note">점수는 알려진 눈 피로 요인을 묶은 참고용 추정치이며, 의학적 진단이나 시력 측정이 아닙니다. 눈 통증·지속되는 흐림·갑작스러운 시야 변화는 안과 진료를 받으세요. · <a href="privacy.html">개인정보처리방침</a></p>
+</section>
+
+<!-- 체크 -->
+<section class="view" id="v-check">
+  <div class="mini"><svg id="nuniMini" class="nuni" aria-hidden="true"></svg><div><small>오늘 밤 눈 컨디션</small><b id="miniV">0</b><small id="miniL"></small></div><span class="ml" id="miniR"></span></div>
+
+  <div class="q"><h3>얼마나 봤어요?</h3>
+    <div class="stepper"><button type="button" id="hMinus" aria-label="30분 줄이기">−</button><output id="hOut">2<small>시간</small></output><button type="button" id="hPlus" aria-label="30분 늘리기">+</button></div>
+    <div class="quick" id="hQuick"></div>
+  </div>
+  <div class="q"><h3>언제부터 봤어요? <em id="tLabel"></em></h3>
+    <div class="timebox"><input type="time" id="tStart" aria-label="보기 시작한 시각"><input type="date" id="tDate" aria-label="날짜"></div>
+  </div>
+  <div class="q" data-k="dist"><h3>눈과 화면 거리</h3><div class="cards"></div></div>
+  <div class="q" data-k="room"><h3>방 밝기</h3><div class="cards"></div></div>
+  <div class="q" data-k="bright"><h3>화면 밝기</h3><div class="cards"></div></div>
+  <div class="q" data-k="brk"><h3>중간에 쉬었나요?</h3><div class="cards"></div></div>
+  <div class="q" data-k="pose"><h3>자세</h3><div class="cards"></div></div>
+  <div class="q" data-k="night"><h3>야간모드(블루라이트 필터)</h3><div class="cards"></div></div>
+  <div class="q" data-k="feel"><h3>지금 눈 상태</h3><div class="cards"></div></div>
+
+  <details><summary>지금 내 눈에 일어나는 일</summary><ul id="what"></ul></details>
+  <details><summary>그래서, 시력이 나빠진 건가요?</summary><ul>
+    <li><b>하룻밤으로는 거의 아니에요.</b> 대부분은 깜빡임이 줄어 생기는 건조함과 초점 근육의 피로예요. 자고 나면 대개 풀립니다.</li>
+    <li><b>쌓이면 신경 쓸 부분:</b> 가까이 오래 보는 습관은 특히 어린이·청소년 근시 진행과 관련이 있다고 알려져 있고, 밤 화면 빛은 잠드는 시간을 늦춥니다.</li>
+    <li><b>안과에 가 보세요:</b> 자고 나도 흐림이 계속될 때, 통증·심한 충혈, 갑자기 한쪽이 안 보이거나 번쩍이는 빛·검은 점이 늘 때.</li></ul></details>
+  <div class="savewrap"><button class="btn primary" type="button" id="save">오늘 밤 기록 저장</button></div>
+</section>
+
+<!-- 휴식 -->
+<section class="view" id="v-rest">
+  <div class="card rest">
+    <div class="big"><svg class="rg" viewBox="0 0 120 120"><circle cx="60" cy="60" r="55" fill="none" stroke="#2f3873" stroke-width="6"/><circle id="restArc" cx="60" cy="60" r="55" fill="none" stroke="#3fb27f" stroke-width="6" stroke-linecap="round" stroke-dasharray="345.6" stroke-dashoffset="345.6"/></svg><svg class="nuni" id="nuniRest" aria-hidden="true"></svg></div>
+    <div class="cnt" id="restCnt">20</div>
+    <div class="step" id="restStep">눈이와 20초 눈 휴식</div>
+    <p id="restHint">화면에서 눈을 떼고 6m 이상 먼 곳을 바라봐요.</p>
+    <div class="btns" style="justify-content:center"><button class="btn primary" type="button" id="restGo">시작하기</button><button class="btn hidden" type="button" id="restStop">그만하기</button></div>
+    <div class="steps" id="restSteps">
+      <div data-s="0"><b>1. 먼 곳 보기</b>20초</div>
+      <div data-s="1"><b>2. 천천히 깜빡</b>10번</div>
+      <div data-s="2"><b>3. 눈 감고 쉬기</b>10초</div>
     </div>
+    <p class="sub" style="margin-top:12px" id="restToday"></p>
   </div>
-</div></section>
+  <div class="card sec tip"><svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="19" fill="#12291f"/><path d="M8 20 Q20 8 32 20 Q20 32 8 20Z" fill="none" stroke="#3fb27f" stroke-width="2.5"/><circle cx="20" cy="20" r="4" fill="#3fb27f"/></svg><p><b>20-20-20 습관</b> — 20분마다 6m(20피트) 먼 곳을 20초 보기. 밤에 폰을 볼 때도 20분마다 이 화면을 열어 보세요.</p></div>
+</section>
 
-<section class="band inputs"><div class="wrap">
-  <h2>오늘 밤 상황</h2>
-  <div class="grid">
-    <div class="q"><label class="t" for="hours">본 시간 <span class="v" id="hoursV"></span></label>
-      <input type="range" id="hours" min="0.5" max="8" step="0.5" value="3"></div>
-    <div class="q"><label class="t" for="dist">눈과 화면 거리 <span class="v" id="distV"></span></label>
-      <input type="range" id="dist" min="10" max="50" step="5" value="20"></div>
-    <div class="q"><span class="t" style="display:block;font-weight:600;margin-bottom:8px">방 밝기</span><div class="seg" data-k="room"></div></div>
-    <div class="q"><span class="t" style="display:block;font-weight:600;margin-bottom:8px">화면 밝기</span><div class="seg" data-k="bright"></div></div>
-    <div class="q"><span class="t" style="display:block;font-weight:600;margin-bottom:8px">중간에 쉬었나요</span><div class="seg" data-k="brk"></div></div>
-    <div class="q"><span class="t" style="display:block;font-weight:600;margin-bottom:8px">자세</span><div class="seg" data-k="pose"></div></div>
-    <div class="q"><span class="t" style="display:block;font-weight:600;margin-bottom:8px">야간모드(블루라이트 필터)</span><div class="seg" data-k="night"></div></div>
-    <div class="q"><span class="t" style="display:block;font-weight:600;margin-bottom:8px">지금 눈 상태</span><div class="seg" data-k="feel"></div></div>
+<!-- 기록 -->
+<section class="view" id="v-log">
+  <div class="seg" id="period">
+    <button type="button" data-p="7" aria-pressed="true">주간</button><button type="button" data-p="30" aria-pressed="false">월간</button><button type="button" data-p="365" aria-pressed="false">연간</button><button type="button" data-p="all" aria-pressed="false">전체</button>
   </div>
-</div></section>
-
-<section class="band"><div class="wrap">
-  <div class="cols">
-    <div class="card"><h2>지금 눈에 일어나는 일</h2><ul id="what"></ul></div>
-    <div class="card"><h2>오늘 밤 회복법</h2><ul id="fix"></ul></div>
+  <div id="log-empty" class="empty hidden">
+    <h2 style="font-size:24px">아직 기록이 없어요</h2>
+    <p>'체크' 탭에서 오늘 밤 상황을 고르고 <b>기록 저장</b>을 누르면 여기에 그래프가 쌓여요.</p>
+    <div class="btns" style="justify-content:center"><button class="btn primary" type="button" id="go-today">오늘 밤 체크하러 가기</button><button class="btn" type="button" id="demo-on">예시 데이터로 미리보기</button></div>
   </div>
-</div></section>
-
-<section class="band" style="padding-top:0"><div class="wrap">
-  <h2>그래서, 시력이 나빠진 건가요?</h2>
-  <div class="myth">
-    <div><h3>하룻밤으로는 거의 아니에요</h3>미국안과학회 쪽 설명은, 화면이 눈을 영구적으로 망가뜨린다는 근거는 없고 사람들이 겪는 건 대부분 <b>눈의 피로(디지털 눈 피로)</b>라는 것입니다. 깜빡임이 줄어 건조해지고, 가까이 초점을 오래 맞춰 근육이 지칩니다. 자고 나면 대개 풀립니다.</div>
-    <div><h3>쌓이면 신경 쓸 부분</h3>가까운 거리에서 오래 보는 습관은 특히 <b>어린이·청소년의 근시 진행</b>과 관련이 있다고 알려져 있습니다. 성인은 영향이 작지만, 밤 화면 빛은 <b>잠드는 걸 늦추고</b> 수면의 질을 떨어뜨립니다.</div>
+  <div id="log-body">
+    <p class="note" id="demo-note" style="margin-top:12px"></p>
+    <div class="alarm" id="alarm"></div>
+    <div class="stats" id="stats"></div>
+    <div class="chart"><h3>피로도 점수 추이</h3><p>점선은 기간 평균 · 높을수록 눈이 지쳤던 밤</p><div class="fig"><svg id="c-score"></svg></div></div>
+    <div class="chart"><h3>본 시간</h3><p>밤마다 폰을 본 시간(시간)</p><div class="fig"><svg id="c-hours"></svg></div></div>
+    <div class="chart"><h3>보기 시작한 시각</h3><p>점 하나가 하루 · 아래로 갈수록 늦은 밤</p><div class="fig"><svg id="c-time"></svg></div></div>
+    <div class="chart"><h3>눈과 화면 거리</h3><p>평균 거리(cm) · 30cm 위가 안전 구간</p><div class="fig"><svg id="c-dist"></svg></div></div>
+    <div class="chart"><h3>밤 습관 분포</h3><p>이 기간 동안 어떤 환경에서 봤는지</p><div class="dist" id="dist"></div></div>
+    <div class="list"><h3 style="font-size:19px">기록 목록</h3><div id="recs"></div></div>
+    <details><summary>기록 백업 · 관리</summary>
+      <p class="sub" style="margin-top:0">기록은 이 폰에만 저장돼요. 폰을 바꾸기 전에 백업 파일로 저장해 두세요.</p>
+      <div class="btns" style="margin-bottom:14px">
+        <button class="btn" type="button" id="exp">백업 파일 저장</button>
+        <label class="btn" for="imp" tabindex="0">백업 불러오기</label><input type="file" id="imp" accept="application/json,.json" class="hidden">
+        <button class="btn" type="button" id="demo-off">예시 데이터 지우기</button>
+        <button class="btn" type="button" id="wipe">전체 기록 삭제</button>
+      </div>
+    </details>
   </div>
-  <div class="warn" style="margin-top:18px"><b>이럴 땐 안과로:</b> 자고 일어나도 흐림이 계속될 때, 눈 통증·심한 충혈, 갑자기 한쪽이 안 보이거나 번쩍이는 빛·검은 점이 늘어날 때.</div>
-  <p class="note">점수는 본 시간·거리·밝기·휴식 같은 알려진 피로 요인을 묶은 추정 모델이며 의학적 측정이 아닙니다. · <a href="privacy.html" style="color:var(--glow)">개인정보처리방침</a></p>
-</div></section>
+</section>
+</main>
 
+<nav class="tabs" role="tablist" aria-label="화면 이동"><div class="wrap">
+  <button role="tab" data-v="home" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="13" r="8"/><circle cx="12" cy="12" r="3"/><path d="M9 4.5 8 2M15 4.5 16 2"/></svg>홈</button>
+  <button role="tab" data-v="check" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="3"/><path d="m9 12 2 2 4-4"/></svg>체크</button>
+  <button role="tab" data-v="rest" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><path d="M12 9v3l2 1"/></svg>휴식</button>
+  <button role="tab" data-v="log" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>기록</button>
+</div></nav>
+<div class="toast" id="toast" role="status"></div>
+<div class="confetti" id="confetti"></div>
 <script>
 {
-const opts={
-  room:[["dark","완전 깜깜",1.25],["dim","무드등",1.1],["lit","불 켬",1]],
-  bright:[["hi","밝게",1.15],["mid","중간",1],["lo","어둡게",.92]],
-  brk:[["no","거의 안 쉼",1.2],["some","가끔",1],["rule","20분마다",.8]],
-  pose:[["side","옆으로 누워(한쪽 눈)",1.1],["back","바로 누워",1.05],["sit","앉아서",1]],
-  night:[["on","켬",.97],["off","끔",1]],
-  feel:[["ok","괜찮음",1],["dry","뻑뻑·따가움",1.1],["blur","흐릿함",1.15]]
-};
-const st={room:"dark",bright:"mid",brk:"no",pose:"side",night:"off",feel:"dry"};
-try{Object.assign(st,JSON.parse(localStorage.getItem("eyeSt")||"{}"))}catch(e){}
-const $=id=>document.getElementById(id);
-const hours=$("hours"),dist=$("dist");
-try{const h=localStorage.getItem("eyeH"),d=localStorage.getItem("eyeD");if(h)hours.value=h;if(d)dist.value=d}catch(e){}
-
-document.querySelectorAll(".seg").forEach(g=>{
-  const k=g.dataset.k;
-  g.innerHTML=opts[k].map(o=>`<button type="button" data-v="${o[0]}">${o[1]}</button>`).join("");
-  g.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;st[k]=b.dataset.v;calc()});
-});
-hours.addEventListener("input",calc);dist.addEventListener("input",calc);
-
-const f=k=>opts[k].find(o=>o[0]===st[k])[2];
-function distF(d){return d<20?1.4:d<30?1.2:d<40?1:.85}
-
-function eye(s){
-  const t=s/100, lid=40+t*55, red=t;
-  let veins="";
-  const vs=[[60,125,110,110,95,140],[70,150,115,160,100,175],[340,120,290,112,305,95],[332,150,288,158,300,178],[50,135,85,128,80,105],[350,140,315,135,325,160]];
-  vs.forEach((v,i)=>{if(t>i*.13)veins+=`<path d="M${v[0]} ${v[1]} Q${v[2]} ${v[3]} ${v[4]} ${v[5]}" stroke="#e5484d" stroke-width="${1.4+t*1.6}" fill="none" opacity="${Math.min(1,red*1.3)}" stroke-linecap="round"/>`});
-  $("eye").innerHTML=`
+/* 눈이(Nuni) — 둥근 몸통에 큰 눈 하나. mascot(svg, score, {streak, id}) */
+function mascot(svg,s,o){
+  o=o||{};const id=o.id||"m",t=s/100,st=s<=25?0:s<=50?1:s<=75?2:3;
+  const cx=150,cy=156,R=66;
+  const lidTop=[null,cy-36,cy-14,cy-4][st],lidBot=[null,null,cy+50,cy+42][st];
+  const sclEdge=["#dfe2ff","#e9e3f5","#f3c7c7","#f0a9a9"][st];
+  const B1="#7b84f0",B2="#5058c4",B3="#3d44a3",INK="#232760";
+  const qp=(u,P0,C,P2)=>[(1-u)*(1-u)*P0[0]+2*u*(1-u)*C[0]+u*u*P2[0],(1-u)*(1-u)*P0[1]+2*u*(1-u)*C[1]+u*u*P2[1]];
+  /* 홍채 결 */
+  let fib="";for(let i=0;i<54;i++){const a=i/54*Math.PI*2,r1=14+(i%3)*2,r2=30+(i%2)*3;
+    fib+=`<line x1="${(Math.cos(a)*r1).toFixed(1)}" y1="${(Math.sin(a)*r1).toFixed(1)}" x2="${(Math.cos(a)*r2).toFixed(1)}" y2="${(Math.sin(a)*r2).toFixed(1)}" stroke="${i%2?"#a85c0a":"#ffeab0"}" stroke-width="${i%2?1.5:1}" opacity="${i%2?.55:.75}"/>`}
+  /* 핏줄 (흰자에) */
+  const vs=[[80,138,100,130,108,146],[82,166,102,174,110,160],[220,136,200,128,192,146],[218,164,198,174,190,158],[90,118,104,120,108,132],[210,118,196,120,192,134],[118,206,128,192,140,200],[182,206,172,192,160,200]];
+  let veins="";vs.forEach((v,i)=>{if(t>.3+i*.07)veins+=`<path d="M${v[0]} ${v[1]} Q${v[2]} ${v[3]} ${v[4]} ${v[5]}" stroke="#e5484d" stroke-width="${1.2+t*1.3}" fill="none" stroke-linecap="round" opacity=".85"/>`});
+  /* 속눈썹 */
+  let lashes="";
+  if(st===0){[-0.95,-0.62,-0.3,0.3,0.62,0.95].forEach(a0=>{const a=-Math.PI/2+a0,x=cx+Math.cos(a)*(R+3),y=cy+Math.sin(a)*(R+3),x2=cx+Math.cos(a)*(R+17),y2=cy+Math.sin(a)*(R+17);
+    lashes+=`<path d="M${x.toFixed(1)} ${y.toFixed(1)} Q${((x+x2)/2+a0*4).toFixed(1)} ${((y+y2)/2-3).toFixed(1)} ${x2.toFixed(1)} ${y2.toFixed(1)}" stroke="${INK}" stroke-width="4.5" fill="none" stroke-linecap="round"/>`})}
+  else{const P0=[cx-R,lidTop],C=[cx,lidTop+28],P2=[cx+R,lidTop];
+    [.18,.34,.5,.66,.82].forEach(u=>{const [x,y]=qp(u,P0,C,P2),dx=(u-.5)*14;lashes+=`<path d="M${x.toFixed(1)} ${(y-1).toFixed(1)} q${(dx*.4).toFixed(1)} 7 ${dx.toFixed(1)} 11" stroke="${INK}" stroke-width="3.6" fill="none" stroke-linecap="round"/>`})}
+  /* 팔 */
+  const A=(d,hx,hy)=>`<path d="${d}" stroke="${B2}" stroke-width="13" fill="none" stroke-linecap="round"/><circle cx="${hx}" cy="${hy}" r="11" fill="${B1}"/>`;
+  const arms=[A("M44 196 Q16 172 22 132",22,128)+A("M256 200 Q282 214 278 236",278,240),
+    A("M46 204 Q26 222 30 246",30,250)+A("M254 204 Q274 222 270 246",270,250),
+    A("M46 206 Q30 232 38 254",38,258)+A("M254 190 Q284 172 268 140",266,136),
+    A("M50 158 Q14 122 34 84",36,80)+A("M250 158 Q286 122 266 84",264,80)][st];
+  const fx=[
+    `<g class="spark"><path d="M262 70 l5 12 l12 5 l-12 5 l-5 12 l-5 -12 l-12 -5 l12 -5z" fill="#ffcf6b"/><path d="M34 70 l3 7 l7 3 l-7 3 l-3 7 l-3 -7 l-7 -3 l7 -3z" fill="#fff3c4"/></g>`,
+    `<g class="zz" fill="#c9cdf0" font-family="Gowun Dodum,sans-serif" font-weight="700"><text x="236" y="70" font-size="22">z</text><text x="254" y="48" font-size="30">Z</text></g>`,
+    `<path class="sweat" d="M232 92 Q222 110 232 120 Q242 110 232 92Z" fill="#7fc8ff"/>`,
+    `<g class="tear"><path d="M196 210 Q188 226 196 236 Q204 226 196 210Z" fill="#7fc8ff"/></g><g class="tear t2"><path d="M104 210 Q96 226 104 236 Q112 226 104 210Z" fill="#7fc8ff"/></g>`][st];
+  const k=o.streak||0;
+  const cap=k>=3&&k<30?`<g transform="translate(0 -10)"><path d="M98 76 Q148 -6 206 70 Q152 58 98 76Z" fill="#2d327f"/><circle cx="130" cy="44" r="4" fill="#fff3c4"/><circle cx="168" cy="50" r="3" fill="#fff3c4"/><path d="M98 76 Q152 58 206 70 L208 82 Q152 70 96 88Z" fill="#fff3c4"/><path d="M190 40 Q228 30 236 70" stroke="#2d327f" stroke-width="11" fill="none" stroke-linecap="round"/><circle cx="238" cy="76" r="12" fill="#fff3c4"/></g>`:"";
+  const crown=k>=30?`<path transform="translate(0 -12)" d="M108 74 L118 40 L136 62 L150 30 L164 62 L182 40 L192 74Z" fill="#ffcf6b" stroke="#c98a1c" stroke-width="3" stroke-linejoin="round"/><circle cx="150" cy="44" r="5" fill="#e5484d"/>`:"";
+  const badge=k>=7?`<g transform="translate(212 250)"><circle r="16" fill="#ffcf6b" stroke="#c98a1c" stroke-width="2"/><path d="M0 -9 l2.7 5.4 l6 .9 l-4.3 4.2 l1 6 l-5.4 -2.8 l-5.4 2.8 l1 -6 l-4.3 -4.2 l6 -.9z" fill="#fff"/></g>`:"";
+  const mouth=[`<path d="M130 238 Q150 258 170 238 Z" fill="#e5484d" stroke="${INK}" stroke-width="4" stroke-linejoin="round"/><path d="M140 247 Q150 252 160 247" stroke="#ff9aa0" stroke-width="3" fill="none"/>`,
+    `<path d="M136 242 Q150 250 164 242" stroke="${INK}" stroke-width="4.5" fill="none" stroke-linecap="round"/>`,
+    `<path d="M134 248 Q142 240 150 246 Q158 252 166 244" stroke="${INK}" stroke-width="4.5" fill="none" stroke-linecap="round"/>`,
+    `<ellipse cx="150" cy="246" rx="13" ry="11" fill="${INK}"/><ellipse cx="150" cy="251" rx="7" ry="4" fill="#e5484d"/>`][st];
+  const brows=[`<path d="M104 62 Q122 52 138 60" class="br"/><path d="M162 60 Q178 52 196 62" class="br"/>`,
+    `<path d="M104 66 Q122 62 138 66" class="br"/><path d="M162 66 Q178 62 196 66" class="br"/>`,
+    `<path d="M104 62 Q122 66 138 72" class="br"/><path d="M162 72 Q178 66 196 62" class="br"/>`,
+    `<path d="M104 72 Q120 60 138 62" class="br"/><path d="M162 62 Q180 60 196 72" class="br"/>`][st].replace(/class="br"/g,`stroke="${INK}" stroke-width="6" fill="none" stroke-linecap="round"`);
+  svg.setAttribute("viewBox","0 0 300 320");
+  svg.innerHTML=`
   <defs>
-    <radialGradient id="sc" cx="50%" cy="50%" r="60%"><stop offset="0" stop-color="#fffdf6"/><stop offset="1" stop-color="${t>.5?'#f3c9c4':'#e9e6f2'}"/></radialGradient>
-    <radialGradient id="ir" cx="45%" cy="40%" r="60%"><stop offset="0" stop-color="#8a6a3e"/><stop offset="1" stop-color="#3b2614"/></radialGradient>
-    <radialGradient id="gl" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#ffcf6b" stop-opacity=".55"/><stop offset="1" stop-color="#ffcf6b" stop-opacity="0"/></radialGradient>
-    <clipPath id="cl"><path d="M30 130 Q200 20 370 130 Q200 240 30 130Z"/></clipPath>
+    <radialGradient id="${id}bd" cx="38%" cy="30%" r="75%"><stop offset="0" stop-color="${B1}"/><stop offset=".65" stop-color="${B2}"/><stop offset="1" stop-color="${B3}"/></radialGradient>
+    <radialGradient id="${id}sc" cx="42%" cy="38%" r="65%"><stop offset="0" stop-color="#fff"/><stop offset=".72" stop-color="#fbfaff"/><stop offset="1" stop-color="${sclEdge}"/></radialGradient>
+    <radialGradient id="${id}ir" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#6a3400"/><stop offset=".38" stop-color="#d9891a"/><stop offset=".82" stop-color="#ffc24d"/><stop offset="1" stop-color="#8a4a08"/></radialGradient>
+    <linearGradient id="${id}lid" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${B3}"/><stop offset="1" stop-color="${B2}"/></linearGradient>
+    <clipPath id="${id}cl"><circle cx="${cx}" cy="${cy}" r="${R}"/></clipPath>
   </defs>
-  <ellipse cx="200" cy="140" rx="200" ry="110" fill="url(#gl)"/>
-  <path d="M30 130 Q200 20 370 130 Q200 240 30 130Z" fill="url(#sc)"/>
-  <g clip-path="url(#cl)">
-    ${veins}
-    <circle cx="200" cy="130" r="62" fill="url(#ir)"/>
-    <circle cx="200" cy="130" r="${30-t*12}" fill="#0b0b14"/>
-    <circle cx="180" cy="110" r="12" fill="#fff" opacity=".85"/>
-    <rect x="150" y="118" width="16" height="26" rx="3" fill="#ffcf6b" opacity=".6"/>
-    <path d="M0 0 H400 V${lid} Q200 ${lid+40-t*10} 0 ${lid}Z" fill="#2a2f6b"/>
+  <ellipse cx="150" cy="308" rx="92" ry="10" fill="#000" opacity=".28"/>
+  <g class="bob">
+    <ellipse cx="112" cy="292" rx="26" ry="14" fill="${B3}"/><ellipse cx="188" cy="292" rx="26" ry="14" fill="${B3}"/>
+    ${arms}
+    <path d="M150 52 C228 52 270 110 270 180 C270 250 220 292 150 292 C80 292 30 250 30 180 C30 110 72 52 150 52Z" fill="url(#${id}bd)"/>
+    <path d="M78 100 Q100 70 140 64" stroke="#a7aeff" stroke-width="8" fill="none" stroke-linecap="round" opacity=".55"/>
+    ${brows}
+    <circle cx="${cx}" cy="${cy}" r="${R+7}" fill="${INK}"/>
+    <circle cx="${cx}" cy="${cy}" r="${R}" fill="url(#${id}sc)"/>
+    <g clip-path="url(#${id}cl)">
+      ${veins}
+      <g class="iris"><g transform="translate(${cx} ${cy+(st>=2?10:st===1?4:0)})">
+        <circle r="35" fill="url(#${id}ir)"/>${fib}
+        <circle r="35" fill="none" stroke="#3b1f05" stroke-width="3.5"/>
+        <circle r="${[16,15,13,11][st]}" fill="#0b0d22"/>
+        <ellipse cx="-13" cy="-15" rx="11" ry="8.5" fill="#fff"/>
+        <circle cx="12" cy="12" r="4.5" fill="#fff" opacity=".8"/>
+      </g></g>
+      ${st>0?`<path d="M${cx-R-10} ${cy-R-10} H${cx+R+10} V${lidTop} Q${cx} ${lidTop+28} ${cx-R-10} ${lidTop}Z" fill="url(#${id}lid)"/><path d="M${cx-R} ${lidTop} Q${cx} ${lidTop+28} ${cx+R} ${lidTop}" stroke="${INK}" stroke-width="5" fill="none"/>`:""}
+      ${lidBot?`<path d="M${cx-R-10} ${cy+R+10} H${cx+R+10} V${lidBot} Q${cx} ${lidBot-22} ${cx-R-10} ${lidBot}Z" fill="${B2}"/>`:""}
+      <g class="blink"><rect x="${cx-R-10}" y="${cy-R-10}" width="${2*R+20}" height="${2*R+20}" fill="url(#${id}lid)"/><path d="M${cx-R+6} ${cy+4} Q${cx} ${cy+30} ${cx+R-6} ${cy+4}" stroke="${INK}" stroke-width="5" fill="none" stroke-linecap="round"/></g>
+    </g>
+    <ellipse cx="124" cy="104" rx="18" ry="9" fill="#fff" opacity=".22" transform="rotate(-28 124 104)"/>
+    ${lashes}
+    ${st<=1?`<ellipse cx="86" cy="236" rx="17" ry="9" fill="#ff8fb1" opacity=".6"/><ellipse cx="214" cy="236" rx="17" ry="9" fill="#ff8fb1" opacity=".6"/>`:`<path d="M96 226 Q110 232 124 226" stroke="#2a2f7a" stroke-width="4" fill="none" stroke-linecap="round" opacity=".7"/><path d="M176 226 Q190 232 204 226" stroke="#2a2f7a" stroke-width="4" fill="none" stroke-linecap="round" opacity=".7"/>`}
+    ${mouth}
+    ${cap}${crown}${badge}
   </g>
-  <path d="M30 130 Q200 ${20+t*30} 370 130" stroke="#0b0d22" stroke-width="5" fill="none" stroke-linecap="round"/>
-  <path d="M30 130 Q200 240 370 130" stroke="#0b0d22" stroke-width="3" fill="none" opacity=".6"/>`;
+  ${fx}`;
+  if(!svg._follow){svg._follow=true;
+    const move=e=>{const b=svg.getBoundingClientRect();if(!b.width||!b.height)return;const p=e.touches?e.touches[0]:e;
+      const dx=p.clientX-(b.left+b.width/2),dy=p.clientY-(b.top+b.height*.46),d=Math.hypot(dx,dy)||1,m=Math.min(16,d/10);
+      const ir=svg.querySelector(".iris");if(ir)ir.setAttribute("transform",`translate(${(dx/d*m).toFixed(1)} ${(dy/d*m*.8).toFixed(1)})`)};
+    window.addEventListener("pointermove",move,{passive:true});window.addEventListener("touchmove",move,{passive:true});}
+}
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const IC={ /* 카드 아이콘 */
+  dist:['<path d="M6 12h12M6 12l3-3M6 12l3 3M18 12l-3-3M18 12l-3 3"/>'],
+  room:['<path d="M12 3a6 6 0 0 0-3 11v2h6v-2a6 6 0 0 0-3-11z"/><path d="M10 20h4"/>'],
+  bright:['<rect x="7" y="3" width="10" height="18" rx="2"/><path d="M12 9v4M10 11h4"/>'],
+  brk:['<circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/>'],
+  pose:['<path d="M4 18h16M6 18v-4h12v4M8 14V9a2 2 0 0 1 4 0"/>'],
+  night:['<path d="M20 14A8 8 0 1 1 10 4a6 6 0 0 0 10 10z"/>'],
+  feel:['<path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="2.5"/>']
+};
+const OPTS={
+  dist:{t:"거리",o:[["10","손 한 뼘","10~20cm",1.4,15],["20","가까이","20~30cm",1.2,25],["30","적당히","30~40cm",1,35],["40","멀리","40cm 이상",.85,45]]},
+  room:{t:"방 밝기",o:[["dark","완전 깜깜","불 다 끔",1.25],["dim","무드등","은은한 조명",1.1],["lit","불 켬","방이 밝음",1]]},
+  bright:{t:"화면 밝기",o:[["hi","눈부시게","최대 밝기",1.15],["mid","중간","보통",1],["lo","어둡게","낮춤",.92]]},
+  brk:{t:"휴식",o:[["no","거의 안 쉼","쭉 봤음",1.2],["some","가끔","몇 번 쉼",1],["rule","20분마다","20-20-20",.8]]},
+  pose:{t:"자세",o:[["side","옆으로 누워","한쪽 눈",1.1],["back","바로 누워","천장 보고",1.05],["sit","앉아서","바른 자세",1]]},
+  night:{t:"야간모드",o:[["on","켰어요","노란 화면",.97],["off","껐어요","기본 화면",1]]},
+  feel:{t:"눈 상태",o:[["ok","괜찮아요","멀쩡함",1],["dry","뻑뻑해요","따갑고 건조",1.1],["blur","흐릿해요","초점이 안 맞음",1.15]]}
+};
+const COLORS={dist:["#e5484d","#ff9a4a","#ffcf6b","#3fb27f"],room:["#e5484d","#ffcf6b","#3fb27f"],bright:["#e5484d","#ffcf6b","#3fb27f"],brk:["#e5484d","#ffcf6b","#3fb27f"],pose:["#e5484d","#ffcf6b","#3fb27f"],night:["#3fb27f","#e5484d"],feel:["#3fb27f","#ffcf6b","#e5484d"]};
+const LS=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}};
+const SS=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const st=Object.assign({hours:2,dist:"30",room:"dark",bright:"mid",brk:"some",pose:"back",night:"off",feel:"ok"},LS("sme-state")||{});
+let records=LS("sme-records")||[];
+let rests=LS("sme-rest")||{};
+let period="7",showN=14;
+
+const f=(k,v)=>(OPTS[k].o.find(o=>o[0]===v)||OPTS[k].o[0])[3];
+function score(r){let s=r.hours*13;for(const k of Object.keys(OPTS))s*=f(k,r[k]);return Math.max(3,Math.min(100,Math.round(s)))}
+function level(s){return s<=25?{n:"쌩쌩",c:"#3fb27f",rec:"30분~1시간"}:s<=50?{n:"조금 피곤",c:"#ffcf6b",rec:"하룻밤"}:s<=75?{n:"많이 피곤",c:"#ff9a4a",rec:"1~2일"}:{n:"SOS",c:"#e5484d",rec:"2~3일"}}
+function cond(b){return b>=85?{t:"최상",c:"#3fb27f",s:"눈이 쌩쌩해요. 오늘처럼만!"}:b>=70?{t:"좋음",c:"#7fd6a8",s:"충분히 괜찮아요. 이쯤에서 자면 완벽."}:b>=50?{t:"주의",c:"#ffcf6b",s:"눈이 피곤해지기 시작했어요."}:b>=25?{t:"휴식 필요",c:"#ff9a4a",s:"오늘은 폰을 내려놓고 쉬어 주세요."}:{t:"위험",c:"#e5484d",s:"눈이 SOS! 지금 바로 쉬어야 해요."}}
+const SAY=[["오늘 내 눈 반짝반짝! 이대로 꿈나라 가자","눈 관리 최고야! 내일도 부탁해"],["슬슬 졸려… 조금만 보고 자자","하품 나온다… 우리 곧 자자"],["눈이 따끔따끔해… 폰 좀 내려놔 줘","나 충혈됐어… 20초만 쉬게 해 줘"],["구해줘…! 오늘은 정말 그만!","눈물 나… 제발 나 좀 쉬게 해 줘"]];
+const fmtH=h=>{const H=Math.floor(h),M=Math.round((h-H)*60);return (H?H+"시간":"")+(M?(H?" ":"")+M+"분":"")||"0분"};
+const pad=n=>String(n).padStart(2,"0");
+const todayStr=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const now=new Date(),nightDate=new Date(now);if(now.getHours()<6)nightDate.setDate(nightDate.getDate()-1);
+const tonight=todayStr(nightDate);
+const stIdx=s=>s<=25?0:s<=50?1:s<=75?2:3;
+
+/* ---------- 연속 기록 ---------- */
+function streak(){const set=new Set(records.map(r=>r.night));let d=new Date(nightDate),n=0;
+  if(!set.has(todayStr(d)))d.setDate(d.getDate()-1);
+  while(set.has(todayStr(d))){n++;d.setDate(d.getDate()-1)}return n}
+
+/* ---------- 요인(Oura식 기여 요소) ---------- */
+function contributors(x){ /* x: {hours,dist,room,bright,brk,pose,night,feel,startH} */
+  const g=(p,lab)=>({p,lab,c:p>=70?"#3fb27f":p>=45?"#ffcf6b":"#e5484d",w:p>=70?"좋아요":p>=45?"보통":"주의"});
+  const lightF=f("room",x.room)*f("bright",x.bright);
+  const out=[
+    ["본 시간",g(Math.max(6,100-x.hours*20),fmtH(x.hours))],
+    ["화면 거리",g({10:15,20:45,30:80,40:100}[x.dist]||50)],
+    ["방·화면 밝기 차이",g(lightF<=1?95:lightF<=1.1?70:lightF<=1.27?45:20)],
+    ["중간 휴식",g({no:15,some:55,rule:100}[x.brk])],
+    ["자세",g({side:30,back:60,sit:100}[x.pose])],
+    ["야간모드",g(x.night==="on"?95:55)]
+  ];
+  if(x.startH!=null)out.push(["시작 시각",g(x.startH<4?95:x.startH<6?60:x.startH<8?35:15)]);
+  return out;
+}
+const startOff=tv=>{const [h,m]=tv.split(":").map(Number);let o=h+m/60-18;if(o<0)o+=24;return o};
+
+/* ---------- 오늘의 데이터 (저장된 기록 > 작성 중) ---------- */
+function todayData(){
+  const r=records.filter(x=>x.night===tonight&&!x.demo).pop();
+  if(r)return {saved:true,s:r.score,x:{hours:r.hours,dist:r.dist,room:r.room,bright:r.bright,brk:r.brk,pose:r.pose,night:r.night_mode,feel:r.feel,startH:(()=>{const d=new Date(r.start);let o=d.getHours()+d.getMinutes()/60-18;return o<0?o+24:o})()}};
+  return {saved:false,s:score(st),x:Object.assign({},st,{startH:$("tStart").value?startOff($("tStart").value):null})};
 }
 
-function calc(){
-  const h=+hours.value,d=+dist.value;
-  $("hoursV").textContent=h+"시간";$("distV").textContent=d+"cm";
-  document.querySelectorAll(".seg").forEach(g=>g.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.v===st[g.dataset.k])));
-  let s=h*13*distF(d)*f("room")*f("bright")*f("brk")*f("pose")*f("night")*f("feel");
-  s=Math.max(3,Math.min(100,Math.round(s)));
-  const L=s<=25?["가벼움","#3fb27f","30분~1시간","눈 감고 잠깐 쉬면 대부분 풀려요."]:
-          s<=50?["보통","#ffcf6b","하룻밤 숙면","오늘 푹 자면 내일 아침엔 거의 회복됩니다."]:
-          s<=75?["높음","#ff9a4a","1~2일","내일도 뻑뻑할 수 있어요. 내일 밤은 화면을 줄이세요."]:
-                ["매우 높음","#e5484d","2~3일","이런 밤이 자주라면 습관을 바꿀 때입니다."];
-  $("score").innerHTML=s+"<small> / 100</small>";
-  const lv=$("lvl");lv.textContent="피로도 "+L[0];lv.style.background=L[1];lv.style.color="#15122a";
-  const bar=$("bar");bar.style.width=s+"%";bar.style.background=L[1];
-  const blinks=Math.round(h*60*(17-6));
-  $("facts").innerHTML=`<div>예상 회복: <b>${L[2]}</b> — ${L[3]}</div>
-    <div>덜 깜빡인 횟수(추정): <b>약 ${blinks.toLocaleString()}회</b> <span style="font-size:13px">(평소 분당 15~20회 → 화면 볼 때 5~7회)</span></div>
-    <div>영구적인 시력 저하: <b>하룻밤으로는 가능성 낮음</b></div>`;
-  const w=["가까이 초점을 맞추느라 눈 속 근육(모양체)이 계속 긴장 → 멀리 볼 때 잠깐 흐릿함"];
-  w.push("깜빡임이 줄어 눈물막이 마름 → 뻑뻑함, 따가움, 충혈");
-  if(st.room!=="lit")w.push("어두운 방과 밝은 화면의 밝기 차이가 커서 동공이 계속 조절 → 더 빨리 지침");
-  if(st.pose==="side")w.push("한쪽 눈만 베개에 묻고 보면, 폰을 내려놓은 뒤 그 눈이 몇 분간 잘 안 보일 수 있어요(일시적, 무해). 양쪽 눈으로 보면 예방됩니다.");
-  if(h>=2)w.push("자기 전 밝은 화면은 멜라토닌 분비를 늦춰 잠드는 시간이 밀리고 수면이 얕아질 수 있어요");
-  if(d<25)w.push(d+"cm는 꽤 가까워요. 30~40cm만 떨어져도 초점 부담이 확 줄어듭니다");
-  $("what").innerHTML=w.map(x=>`<li>${x}</li>`).join("");
-  const fx=["지금 폰 내려놓고 눈 감고 1~2분 쉬기, 의식적으로 천천히 10번 깜빡이기"];
-  if(st.feel!=="ok")fx.push("뻑뻑하면 인공눈물(무방부제) 한두 방울, 또는 따뜻한 수건 찜질 5분");
-  fx.push("내일부터 20-20-20: 20분마다 6m(20피트) 먼 곳을 20초 보기");
-  if(st.room!=="lit")fx.push("밤에 볼 거면 무드등이라도 켜서 화면과 방 밝기 차이 줄이기");
-  if(st.bright==="hi")fx.push("화면 밝기는 주변 밝기에 맞춰 낮추기(자동 밝기 켜기)");
-  fx.push("화면은 팔 길이 가까이(30~40cm), 바로 앉거나 누워 양쪽 눈으로 보기");
-  $("fix").innerHTML=fx.map(x=>`<li>${x}</li>`).join("");
-  eye(s);
-  try{localStorage.setItem("eyeSt",JSON.stringify(st));localStorage.setItem("eyeH",h);localStorage.setItem("eyeD",d)}catch(e){}
+/* ---------- 홈 ---------- */
+function renderHome(){
+  const k=streak(),D=todayData(),s=D.s,b=100-s,si=stIdx(s),C=cond(b),L=level(s);
+  $("streakN").textContent=k;
+  mascot($("nuniHome"),s,{id:"h",streak:k});
+  $("say").textContent=D.saved?SAY[si][k%2]:"오늘 밤은 어땠어? 체크하고 나랑 기록하자!";
+  const pill=$("statePill");pill.textContent=L.n;pill.style.background=L.c;pill.style.color="#15122a";
+  $("whenTag").textContent=D.saved?"· 오늘 밤 기록 완료":"· 미리보기(저장 전)";
+  $("ringV").textContent=b;$("ringArc").style.stroke=C.c;$("ringArc").style.strokeDashoffset=(326.7*(1-b/100)).toFixed(1);
+  $("ringTitle").textContent=C.t;$("ringTitle").style.color=C.c;
+  $("ringSub").textContent=C.s+" 예상 회복: "+L.rec;
+  $("goCheck").textContent=D.saved?"오늘 기록 고치기":"오늘 밤 체크하기";
+  $("contrib").innerHTML=contributors(D.x).map(([n,g])=>`<div class="ct"><span>${n}${g.lab?` <small style="color:var(--mute)">${g.lab}</small>`:""}</span><em style="color:${g.c}">${g.w}</em><div class="tr"><i style="width:${g.p}%;background:${g.c}"></i></div></div>`).join("");
+  /* 이번 주 */
+  const days=[];const base=new Date(nightDate);for(let i=6;i>=0;i--){const d=new Date(base);d.setDate(d.getDate()-i);days.push(d)}
+  const by={};records.forEach(r=>{by[r.night]=r});let done=0,sum=0;
+  $("week").innerHTML=days.map(d=>{const key=todayStr(d),r=by[key],isT=key===tonight;if(r){done++;sum+=100-r.score}
+    return `<div class="${isT?"today":""}">${isT?"오늘":"일월화수목금토"[d.getDay()]}<i class="${r?"on":""}" style="${r?`background:${cond(100-r.score).c}`:""}">${r?100-r.score:""}</i></div>`}).join("");
+  $("weekSum").textContent=done?`${done}일 기록 · 평균 컨디션 ${Math.round(sum/done)}`:"아직 기록 없음";
+  /* 선물 */
+  const G=[[3,"수면 모자",'<path d="M6 26 Q20 0 36 24 Q20 20 6 26Z" fill="#2d327f"/><path d="M6 26 Q20 20 36 24 L36 29 Q20 25 5 31Z" fill="#fff3c4"/><circle cx="37" cy="27" r="4" fill="#fff3c4"/>'],[7,"별 배지",'<circle cx="21" cy="20" r="14" fill="#ffcf6b"/><path d="M21 11 l3 6 l6 1 l-4.5 4.4 l1 6.3 l-5.5 -3 l-5.5 3 l1 -6.3 l-4.5 -4.4 l6 -1z" fill="#fff"/>'],[30,"왕관",'<path d="M6 30 L9 12 L16 21 L21 8 L26 21 L33 12 L36 30Z" fill="#ffcf6b" stroke="#c98a1c" stroke-width="2"/>']];
+  $("grow").innerHTML=G.map(([n,lab,svg])=>`<div class="${k>=n?"got":""}"><svg width="42" height="36" viewBox="0 0 42 36" style="opacity:${k>=n?1:.35}">${svg}</svg>${lab}<br><b style="color:${k>=n?"var(--glow)":"var(--mute)"}">${k>=n?"획득!":n+"일 연속"}</b></div>`).join("");
+  const next=G.find(g=>k<g[0]);
+  $("growSub").textContent=next?`다음 선물까지 ${next[0]-k}일`:"모든 선물 획득!";
+  const prev=[0,...G.map(g=>g[0])].filter(n=>n<=k).pop();
+  $("growBar").style.width=next?Math.round((k-prev)/(next[0]-prev)*100)+"%":"100%";
+  /* 팁 */
+  const worst=contributors(D.x).sort((a,b)=>a[1].p-b[1].p)[0];
+  const TIPS={"본 시간":"오늘 밤은 폰 보는 시간을 30분만 줄여 보세요. 눈이 배터리가 10% 이상 올라가요.","화면 거리":"폰을 팔 길이만큼(30~40cm) 떨어뜨리면 초점 근육이 훨씬 덜 지쳐요.","방·화면 밝기 차이":"깜깜한 방에서 밝은 화면은 눈에 가장 힘들어요. 무드등을 켜거나 화면을 어둡게 해 보세요.","중간 휴식":"20분마다 '휴식' 탭에서 20초 눈 휴식을 해 보세요. 눈이가 같이 해 줘요.","자세":"옆으로 누워 한쪽 눈으로 보면 양쪽 눈이 따로 놀아요. 바로 누워 두 눈으로 보세요.","야간모드":"야간모드를 켜면 밤 화면 빛이 부드러워져 잠들기 쉬워져요.","시작 시각":"자정 넘어 보기 시작하면 수면이 짧아져요. 오늘은 조금 일찍 시작하고 일찍 끝내 봐요."};
+  $("tip").innerHTML=`<b>오늘의 한 가지</b> — ${TIPS[worst[0]]}`;
 }
-calc();
+$("nuniHome").addEventListener("click",()=>{const n=$("nuniHome");n.classList.remove("jump","blinknow");void n.offsetWidth;n.classList.add("jump","blinknow");
+  const s=todayData().s,si=stIdx(s);$("say").textContent=["간지러워! 헤헤","나 잘 지켜 줘서 고마워","조금 쉬고 싶어…","나 진짜 힘들어…"][si]});
+
+/* ---------- 체크 ---------- */
+document.querySelectorAll(".q[data-k]").forEach(q=>{
+  const k=q.dataset.k;
+  q.querySelector(".cards").innerHTML=OPTS[k].o.map((o,i)=>`<button type="button" data-v="${o[0]}"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="${COLORS[k][i]}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[k][0]}</svg><div><b>${o[1]}</b><span>${o[2]}</span></div></button>`).join("");
+  q.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;st[k]=b.dataset.v;renderCheck()});
+});
+$("hQuick").innerHTML=[1,2,3,4,5,6].map(h=>`<button type="button" data-h="${h}">${h}시간${h===6?"+":""}</button>`).join("");
+$("hQuick").addEventListener("click",e=>{const b=e.target.closest("button");if(b){st.hours=+b.dataset.h;renderCheck()}});
+$("hMinus").onclick=()=>{st.hours=Math.max(.5,st.hours-.5);renderCheck()};
+$("hPlus").onclick=()=>{st.hours=Math.min(12,st.hours+.5);renderCheck()};
+(()=>{const d=new Date(Date.now()-st.hours*3600e3);$("tStart").value=pad(d.getHours())+":"+pad(Math.floor(d.getMinutes()/10)*10)})();
+$("tDate").value=tonight;
+$("tStart").addEventListener("input",renderCheck);
+function renderCheck(){
+  $("hOut").innerHTML=fmtH(st.hours).replace("시간","<small>시간</small>").replace("분","<small>분</small>");
+  document.querySelectorAll(".q[data-k]").forEach(q=>q.querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.v===st[q.dataset.k])));
+  document.querySelectorAll("#hQuick button").forEach(b=>b.classList.toggle("on",+b.dataset.h===st.hours));
+  const s=score(st),b=100-s,C=cond(b);
+  mascot($("nuniMini"),s,{id:"c",streak:streak()});
+  $("miniV").textContent=b;$("miniV").style.color=C.c;$("miniL").textContent=C.t+" · 피로도 "+s+"점";
+  $("miniR").textContent="회복 "+level(s).rec;
+  const tv=$("tStart").value;if(tv){const H=+tv.slice(0,2);$("tLabel").textContent=(H<6?"새벽 ":H<12?"오전 ":H<18?"오후 ":"밤 ")+(H%12||12)+":"+tv.slice(3,5)}
+  const w=["가까이 초점을 맞추느라 눈 속 근육(모양체)이 계속 긴장 → 멀리 볼 때 잠깐 흐릿함","깜빡임이 평소 분당 15~20회에서 5~7회로 줄어 눈물막이 마름 → 뻑뻑함, 충혈"];
+  if(st.room!=="lit")w.push("어두운 방과 밝은 화면의 밝기 차이가 커서 동공이 계속 조절 → 더 빨리 지침");
+  if(st.pose==="side")w.push("한쪽 눈으로 보면, 폰을 내려놓은 뒤 그 눈이 몇 분간 잘 안 보일 수 있어요(일시적). 양쪽 눈으로 보면 예방돼요.");
+  if(st.hours>=2)w.push("자기 전 밝은 화면은 잠드는 시간을 늦추고 수면을 얕게 만들 수 있어요");
+  $("what").innerHTML=w.map(x=>`<li>${x}</li>`).join("");
+  SS("sme-state",st);
+}
+let toastT;function toast(m){const t=$("toast");t.textContent=m;t.classList.add("on");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("on"),2600)}
+function confetti(){const c=$("confetti"),cols=["#ffcf6b","#3fb27f","#7b84f0","#ff8fb1","#7fc8ff"];c.innerHTML=Array.from({length:40},(_,i)=>`<i style="left:${Math.random()*100}%;background:${cols[i%5]};animation-delay:${(Math.random()*.4).toFixed(2)}s;animation-duration:${(1.2+Math.random()*.8).toFixed(2)}s"></i>`).join("");setTimeout(()=>c.innerHTML="",2400)}
+$("save").onclick=()=>{
+  const tv=$("tStart").value||"23:00",dv=$("tDate").value||tonight;
+  const [Y,Mo,D]=dv.split("-").map(Number),[hh,mm]=tv.split(":").map(Number);
+  const start=new Date(Y,Mo-1,D,hh,mm);if(hh<6)start.setDate(start.getDate()+1);
+  const before=streak();
+  const r={id:Date.now().toString(36),night:dv,start:start.toISOString(),hours:st.hours,dist:st.dist,room:st.room,bright:st.bright,brk:st.brk,pose:st.pose,night_mode:st.night,feel:st.feel};
+  r.score=score({...r,night:r.night_mode});
+  records=records.filter(x=>!(x.night===dv&&!x.demo));records.push(r);records.sort((a,b)=>a.start<b.start?-1:1);SS("sme-records",records);
+  const k=streak();switchView("home");
+  const gift={3:"수면 모자",7:"별 배지",30:"왕관"}[k];
+  if(gift&&k>before){confetti();toast(`${k}일 연속! 눈이가 '${gift}'를 받았어요`)}else{toast(k>1?`저장 완료! ${k}일 연속 기록 중`:"저장 완료! 내일도 눈이랑 기록해요")}
+  const n=$("nuniHome");n.classList.remove("jump");void n.offsetWidth;n.classList.add("jump");
+};
+
+/* ---------- 휴식 ---------- */
+let restT=null;
+function restToday(){const n=rests[todayStr(new Date())]||0;$("restToday").textContent=n?`오늘 눈 휴식 ${n}번 완료 — 눈이가 고마워해요!`:"오늘 아직 눈 휴식을 안 했어요."}
+function restUI(phase,left,total){
+  document.querySelectorAll("#restSteps div").forEach(d=>d.classList.toggle("now",+d.dataset.s===phase));
+  $("restArc").style.strokeDashoffset=(345.6*(left/total)).toFixed(1);
+}
+function restStop(done){clearInterval(restT);restT=null;$("restGo").classList.remove("hidden");$("restStop").classList.add("hidden");
+  if(done){const k=todayStr(new Date());rests[k]=(rests[k]||0)+1;SS("sme-rest",rests);confetti();$("restStep").textContent="잘했어요! 눈이가 개운해졌어요";$("restHint").textContent="20분 뒤에 또 만나요.";$("restCnt").textContent="✓";mascot($("nuniRest"),5,{id:"r",streak:streak()})}
+  else{$("restStep").textContent="눈이와 20초 눈 휴식";$("restHint").textContent="화면에서 눈을 떼고 6m 이상 먼 곳을 바라봐요.";$("restCnt").textContent="20";restUI(-1,1,1)}
+  restToday();}
+$("restGo").onclick=()=>{
+  $("restGo").classList.add("hidden");$("restStop").classList.remove("hidden");
+  let phase=0,left=20,total=20,blinks=0;
+  const show=()=>{
+    if(phase===0){$("restStep").textContent="먼 곳을 바라봐요";$("restHint").textContent="창밖이나 방 끝, 6m 이상 먼 곳을 보세요.";$("restCnt").textContent=left}
+    if(phase===1){$("restStep").textContent="천천히 꼭 깜빡여요";$("restHint").textContent="눈이를 따라 눈을 꼭 감았다 떠요.";$("restCnt").textContent=blinks+" / 10"}
+    if(phase===2){$("restStep").textContent="눈을 감고 쉬어요";$("restHint").textContent="10초 동안 눈을 감고 천천히 숨 쉬어요.";$("restCnt").textContent=left}
+    restUI(phase,left,total)};
+  mascot($("nuniRest"),15,{id:"r",streak:streak()});show();
+  restT=setInterval(()=>{
+    if(phase===0){left--;if(left<=0){phase=1;left=10;total=10;blinks=0}}
+    else if(phase===1){blinks++;left=10-blinks;const n=$("nuniRest");n.classList.remove("blinknow");void n.offsetWidth;n.classList.add("blinknow");if(blinks>=10){phase=2;left=10;total=10}}
+    else{left--;if(left<=0){restStop(true);return}}
+    show();
+  },1000);
+};
+$("restStop").onclick=()=>restStop(false);
+
+/* ---------- 화면 전환 ---------- */
+function switchView(v){
+  document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.v===v));
+  ["home","check","rest","log"].forEach(x=>$("v-"+x).classList.toggle("on",x===v));
+  scrollTo(0,0);
+  if(v==="home")renderHome();if(v==="check")renderCheck();if(v==="log")renderLog();
+  if(v==="rest"){if(!restT)mascot($("nuniRest"),15,{id:"r",streak:streak()});restToday()}
+}
+document.querySelectorAll("nav.tabs button").forEach(b=>b.onclick=()=>switchView(b.dataset.v));
+$("goCheck").onclick=()=>switchView("check");
+$("goRest").onclick=()=>switchView("rest");
+$("go-today").onclick=()=>switchView("check");
+function refresh(){renderLog();renderHome()}
+/* ---------- 기록 탭 ---------- */
+$("period").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;period=b.dataset.p;showN=14;document.querySelectorAll("#period button").forEach(x=>x.setAttribute("aria-pressed",x===b));renderLog()});
+const DAY=864e5;
+const nightOf=r=>{const [y,m,d]=r.night.split("-").map(Number);return new Date(y,m-1,d)};
+function range(p){
+  const end=new Date();end.setHours(0,0,0,0);
+  if(p==="all"){const first=records.length?nightOf(records[0]):end;return {from:first,to:end}}
+  return {from:new Date(end-(+p-1)*DAY),to:end};
+}
+function inRange(rs,from,to){return rs.filter(r=>{const n=nightOf(r);return n>=from&&n<=to})}
+function buckets(rs,from,to){
+  const span=Math.round((to-from)/DAY)+1,out=[];
+  const mode=span<=45?"day":span<=400?"week":"month";
+  if(mode==="day"){for(let i=0;i<span;i++){const d=new Date(+from+i*DAY);out.push({d,label:(d.getMonth()+1)+"/"+d.getDate(),rs:[]})}
+    rs.forEach(r=>{const i=Math.round((nightOf(r)-from)/DAY);if(out[i])out[i].rs.push(r)})}
+  else if(mode==="week"){const n=Math.ceil(span/7);for(let i=0;i<n;i++){const d=new Date(+from+i*7*DAY);out.push({d,label:(d.getMonth()+1)+"/"+d.getDate(),rs:[]})}
+    rs.forEach(r=>{const i=Math.floor((nightOf(r)-from)/DAY/7);if(out[i])out[i].rs.push(r)})}
+  else{let d=new Date(from.getFullYear(),from.getMonth(),1);while(d<=to){out.push({d:new Date(d),label:(d.getFullYear()%100)+"."+(d.getMonth()+1),rs:[]});d.setMonth(d.getMonth()+1)}
+    rs.forEach(r=>{const n=nightOf(r),i=(n.getFullYear()-from.getFullYear())*12+n.getMonth()-from.getMonth();if(out[i])out[i].rs.push(r)})}
+  return {mode,out};
+}
+const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
+const distCm=v=>(OPTS.dist.o.find(o=>o[0]===v)||OPTS.dist.o[1])[4];
+/* 시작 시각을 '저녁 6시부터 몇 시간 뒤'로 (18시=0, 자정=6, 새벽6시=12) */
+const tOff=r=>{const d=new Date(r.start);let h=d.getHours()+d.getMinutes()/60-18;if(h<0)h+=24;return h};
+const offTxt=o=>{let h=(o+18)%24,H=Math.floor(h),M=Math.round((h-H)*60);if(M===60){H=(H+1)%24;M=0}return (H<6?"새벽 ":H<12?"오전 ":H<18?"오후 ":"밤 ")+(H%12||12)+":"+pad(M)};
+
+function renderLog(){
+  const has=records.length>0;
+  $("log-empty").classList.toggle("hidden",has);$("log-body").classList.toggle("hidden",!has);
+  if(!has)return;
+  const demo=records.some(r=>r.demo);
+  $("demo-note").innerHTML=demo?`<span class="demo-tag">예시 데이터</span> 지금 보이는 기록은 미리보기용 예시예요. 아래 '기록 백업 · 관리'에서 지울 수 있어요.`:"";
+  $("demo-note").classList.toggle("hidden",!demo);
+  const {from,to}=range(period),rs=inRange(records,from,to);
+  const len=Math.round((to-from)/DAY)+1,pFrom=new Date(+from-len*DAY),pTo=new Date(+from-DAY),prev=period==="all"?[]:inRange(records,pFrom,pTo);
+  const pname={"7":"최근 7일","30":"최근 30일","365":"최근 1년","all":"전체 기간"}[period];
+  const tot=rs.reduce((a,r)=>a+r.hours,0),aS=avg(rs.map(r=>r.score)),aH=avg(rs.map(r=>r.hours)),aT=avg(rs.map(tOff)),aD=avg(rs.map(r=>distCm(r.dist)));
+  const pS=avg(prev.map(r=>r.score)),pH=avg(prev.map(r=>r.hours));
+  const diff=(a,b,u,dec=0)=>a==null||b==null?"":`<i class="${a>b?"up":"down"}">${a>b?"▲":"▼"} ${Math.abs(a-b).toFixed(dec)}${u} (이전 대비)</i>`;
+  /* 경각심 배너 */
+  const al=$("alarm");
+  if(!rs.length){al.className="alarm good";al.innerHTML=`<b>${pname}에는 기록이 없어요</b><p>다른 기간을 눌러 보세요.</p>`}
+  else{
+    const days=tot/24,lateN=rs.filter(r=>tOff(r)>=6).length,bad=aS>50;
+    al.className="alarm"+(bad?"":" good");
+    al.innerHTML=`<b>${pname} 동안 밤에 폰을 총 ${fmtH(tot)} 봤어요${days>=1?` — 꼬박 ${days.toFixed(1)}일`:""}</b>
+      <p>평균 피로도 ${Math.round(aS)}점(${level(Math.round(aS)).n}) · ${rs.length}번 중 ${lateN}번은 자정 넘어 시작했어요.${bad?" 눈이 쉴 틈이 부족해요.":" 이대로만 지켜 주세요!"}</p>`;
+  }
+  $("stats").innerHTML=[
+    ["평균 피로도",aS==null?"-":Math.round(aS)+"점",diff(aS,pS,"점")],
+    ["하루 평균 본 시간",aH==null?"-":fmtH(Math.round(aH*2)/2),diff(aH,pH,"시간",1)],
+    ["누적 본 시간",fmtH(tot),""],
+    ["평균 시작 시각",aT==null?"-":offTxt(aT),""],
+    ["기록한 밤",rs.length+"일",""],
+    ["평균 화면 거리",aD==null?"-":Math.round(aD)+"cm",aD!=null&&aD<30?`<i class="up">가까워요</i>`:""]
+  ].map(s=>`<div><span>${s[0]}</span><b>${s[1]}</b>${s[2]}</div>`).join("");
+  const B=buckets(rs,from,to);
+  lineChart($("c-score"),B,b=>avg(b.rs.map(r=>r.score)),{max:100,avg:aS,unit:"점",color:"#ffcf6b",zones:[[50,100,"rgba(229,72,77,.10)"]]});
+  barChart($("c-hours"),B,b=>B.mode==="day"?(b.rs[0]?b.rs.reduce((a,r)=>a+r.hours,0):null):avg(b.rs.map(r=>r.hours)),{avg:aH,unit:"h"});
+  timeChart($("c-time"),rs,from,to);
+  lineChart($("c-dist"),B,b=>avg(b.rs.map(r=>distCm(r.dist))),{min:10,max:50,avg:aD,unit:"cm",color:"#7fc8ff",zones:[[10,30,"rgba(229,72,77,.10)"]]});
+  /* 분포 */
+  $("dist").innerHTML=Object.keys(OPTS).filter(k=>k!=="dist").concat(["dist"]).map(k=>{
+    const key=k==="night"?"night_mode":k,n=rs.length||1;
+    const parts=OPTS[k].o.map((o,i)=>({lab:o[1],c:COLORS[k][i],p:rs.filter(r=>r[key]===o[0]).length/n*100}));
+    return `<div class="row"><b>${OPTS[k].t}</b><div class="bar">${parts.map(x=>x.p?`<i style="width:${x.p}%;background:${x.c}" title="${x.lab} ${Math.round(x.p)}%"></i>`:"").join("")}</div>
+      <div class="legend">${parts.map(x=>`<span style="--c:${x.c}">${x.lab} ${Math.round(x.p)}%</span>`).join("")}</div></div>`}).join("");
+  /* 목록 */
+  const all=rs.slice().reverse(),list=all.slice(0,showN);
+  $("recs").innerHTML=list.length?list.map(r=>{const L=level(r.score),d=nightOf(r);
+    return `<div class="rec"><div class="sc" style="background:${L.c}">${r.score}</div><div><b>${d.getMonth()+1}월 ${d.getDate()}일 ${"일월화수목금토"[d.getDay()]}요일${r.demo?'<span class="demo-tag">예시</span>':""}</b>
+    <small>${offTxt(tOff(r))}부터 ${fmtH(r.hours)} · ${(OPTS.room.o.find(o=>o[0]===r.room)||[])[1]||""} · ${(OPTS.dist.o.find(o=>o[0]===r.dist)||[])[2]||""}</small></div>
+    <button type="button" data-del="${esc(r.id)}">삭제</button></div>`}).join("")+(all.length>showN?`<div class="btns"><button class="btn" type="button" id="more">더 보기 (${all.length-showN}개 남음)</button></div>`:""):`<p class="sub">이 기간에는 기록이 없어요.</p>`;
+  const mb=$("more");if(mb)mb.onclick=()=>{showN+=14;renderLog()};
+}
+$("recs").addEventListener("click",e=>{const b=e.target.closest("button[data-del]");if(!b)return;
+  if(!b.classList.contains("sure")){b.classList.add("sure");b.textContent="정말 삭제";setTimeout(()=>{b.classList.remove("sure");b.textContent="삭제"},3000);return}
+  records=records.filter(r=>r.id!==b.dataset.del);SS("sme-records",records);refresh();toast("기록을 삭제했어요")});
+
+/* ---------- 차트 ---------- */
+function frame(svg){const W=svg.clientWidth||600,H=svg.clientHeight||200;svg.setAttribute("viewBox",`0 0 ${W} ${H}`);return {W,H,L:34,R:10,T:12,B:26}}
+function xLabels(B,F,x){const n=B.out.length,step=Math.max(1,Math.ceil(n/(F.W<480?5:8)));return B.out.map((b,i)=>(i%step===0&&i<n-step/2)||i===n-1?`<text x="${x(i)}" y="${F.H-6}" fill="#a9afd6" font-size="11" text-anchor="${n>1&&i===n-1?"end":i===0&&n>1?"start":"middle"}">${b.label}</text>`:"").join("")}
+function yGrid(F,vals,y,u){return vals.map(v=>`<line x1="${F.L}" x2="${F.W-F.R}" y1="${y(v)}" y2="${y(v)}" stroke="#2f3873"/><text x="${F.L-6}" y="${y(v)+4}" fill="#a9afd6" font-size="11" text-anchor="end">${v}</text>`).join("")}
+function lineChart(svg,B,val,o){
+  const F=frame(svg),n=B.out.length,min=o.min||0,max=o.max;
+  const x=i=>F.L+(n<=1?(F.W-F.L-F.R)/2:i*(F.W-F.L-F.R)/(n-1)),y=v=>F.T+(1-(v-min)/(max-min))*(F.H-F.T-F.B);
+  const pts=B.out.map((b,i)=>({i,v:val(b)})).filter(p=>p.v!=null);
+  let g=(o.zones||[]).map(z=>`<rect x="${F.L}" width="${F.W-F.L-F.R}" y="${y(z[1])}" height="${y(z[0])-y(z[1])}" fill="${z[2]}"/>`).join("");
+  g+=yGrid(F,[min,(min+max)/2,max].map(Math.round),y,o.unit);
+  if(pts.length>1)g+=`<path d="${pts.map((p,k)=>(k?"L":"M")+x(p.i).toFixed(1)+" "+y(p.v).toFixed(1)).join("")}" fill="none" stroke="${o.color}" stroke-width="2.5" stroke-linejoin="round"/>`;
+  g+=pts.map(p=>`<circle cx="${x(p.i)}" cy="${y(p.v)}" r="${n>40?2.5:4}" fill="${o.color}"><title>${B.out[p.i].label}: ${Math.round(p.v)}${o.unit}</title></circle>`).join("");
+  if(o.avg!=null)g+=`<line x1="${F.L}" x2="${F.W-F.R}" y1="${y(o.avg)}" y2="${y(o.avg)}" stroke="#fff" stroke-dasharray="5 5" opacity=".7"/><text x="${F.W-F.R}" y="${y(o.avg)-5}" fill="#fff" font-size="11" text-anchor="end">평균 ${Math.round(o.avg)}${o.unit}</text>`;
+  svg.innerHTML=g+xLabels(B,F,x);
+}
+function barChart(svg,B,val,o){
+  const F=frame(svg),n=B.out.length,vals=B.out.map(val),max=Math.max(4,Math.ceil(Math.max(0,...vals.filter(v=>v!=null))));
+  const bw=(F.W-F.L-F.R)/n,x=i=>F.L+bw*i+bw/2,y=v=>F.T+(1-v/max)*(F.H-F.T-F.B);
+  let g=yGrid(F,[0,Math.round(max/2),max],y,"h");
+  g+=vals.map((v,i)=>v==null?"":`<rect x="${x(i)-Math.max(1.5,bw*.32)}" width="${Math.max(3,bw*.64)}" y="${y(v)}" height="${y(0)-y(v)}" rx="3" fill="${v>=4?"#e5484d":v>=2?"#ff9a4a":"#3fb27f"}"><title>${B.out[i].label}: ${fmtH(v)}</title></rect>`).join("");
+  if(o.avg!=null)g+=`<line x1="${F.L}" x2="${F.W-F.R}" y1="${y(o.avg)}" y2="${y(o.avg)}" stroke="#fff" stroke-dasharray="5 5" opacity=".7"/><text x="${F.W-F.R}" y="${y(o.avg)-5}" fill="#fff" font-size="11" text-anchor="end">평균 ${fmtH(Math.round(o.avg*2)/2)}</text>`;
+  svg.innerHTML=g+xLabels(B,F,x);
+}
+function timeChart(svg,rs,from,to){
+  const F=frame(svg);F.L=62;const span=Math.max(1,Math.round((to-from)/DAY));
+  const x=d=>F.L+((d-from)/DAY)/span*(F.W-F.L-F.R),lo=0,hi=12,y=v=>F.T+((v-lo)/(hi-lo))*(F.H-F.T-F.B);
+  let g=[0,3,6,9,12].map(v=>`<line x1="${F.L}" x2="${F.W-F.R}" y1="${y(v)}" y2="${y(v)}" stroke="#2f3873"/><text x="${F.L-6}" y="${y(v)+4}" fill="#a9afd6" font-size="11" text-anchor="end">${["저녁 6시","밤 9시","자정","새벽 3시","새벽 6시"][v/3]}</text>`).join("");
+  g+=`<rect x="${F.L}" y="${y(6)}" width="${F.W-F.L-F.R}" height="${y(12)-y(6)}" fill="rgba(229,72,77,.10)"/>`;
+  g+=rs.map(r=>{const o=Math.min(12,tOff(r)),c=level(r.score).c;return `<circle cx="${x(nightOf(r))}" cy="${y(o)}" r="${rs.length>60?3:5}" fill="${c}" opacity=".9"><title>${r.night} ${offTxt(o)} 시작</title></circle>`}).join("");
+  const lab=d=>(d.getMonth()+1)+"/"+d.getDate();
+  g+=`<text x="${F.L}" y="${F.H-6}" fill="#a9afd6" font-size="11">${lab(from)}</text><text x="${F.W-F.R}" y="${F.H-6}" fill="#a9afd6" font-size="11" text-anchor="end">${lab(to)}</text>`;
+  svg.innerHTML=g;
+}
+const ro=new ResizeObserver(()=>{if($("v-log").classList.contains("on"))renderLog()});ro.observe($("v-log"));
+
+/* ---------- 예시 데이터 / 백업 ---------- */
+$("demo-on").onclick=()=>{
+  const out=[],base=new Date();base.setHours(0,0,0,0);let seed=7;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+  const pick=(k,w)=>{const o=OPTS[k].o;let r=rnd()*w.reduce((a,b)=>a+b,0);for(let i=0;i<o.length;i++){r-=w[i];if(r<=0)return o[i][0]}return o[0][0]};
+  for(let i=90;i>=1;i--){if(rnd()<.18)continue;const d=new Date(+base-i*DAY),wk=d.getDay()===5||d.getDay()===6,trend=i/90;
+    const hours=Math.round((1+rnd()*3+(wk?1.5:0)+trend)*2)/2,sh=21+Math.floor(rnd()*5)+(wk?1:0),sm=Math.floor(rnd()*6)*10;
+    const start=new Date(d.getFullYear(),d.getMonth(),d.getDate(),sh%24,sm);if(sh>=24)start.setDate(start.getDate()+1);
+    const r={id:"demo"+i,demo:true,night:todayStr(d),start:start.toISOString(),hours,dist:pick("dist",[3,4,2,1]),room:pick("room",[5,3,2]),bright:pick("bright",[2,4,2]),brk:pick("brk",[5,3,1+(1-trend)*3]),pose:pick("pose",[5,3,2]),night_mode:pick("night",[3,4]),feel:pick("feel",[3,4,2])};
+    r.score=score({...r,night:r.night_mode});out.push(r)}
+  records=records.filter(r=>!r.demo).concat(out).sort((a,b)=>a.start<b.start?-1:1);SS("sme-records",records);refresh();toast("예시 데이터 90일치를 넣었어요");
+};
+$("demo-off").onclick=()=>{records=records.filter(r=>!r.demo);SS("sme-records",records);refresh();toast("예시 데이터를 지웠어요")};
+let wipeArm=false;$("wipe").onclick=()=>{if(!wipeArm){wipeArm=true;$("wipe").textContent="한 번 더 누르면 전부 삭제";setTimeout(()=>{wipeArm=false;$("wipe").textContent="전체 기록 삭제"},4000);return}
+  records=[];SS("sme-records",records);wipeArm=false;$("wipe").textContent="전체 기록 삭제";refresh();toast("모든 기록을 삭제했어요")};
+$("exp").onclick=()=>{const blob=new Blob([JSON.stringify({app:"save-my-eyes",v:1,records},null,1)],{type:"application/json"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="구해줘내눈_백업_"+todayStr(new Date())+".json";document.body.appendChild(a);a.click();a.remove();toast("백업 파일을 저장했어요")};
+$("imp").onchange=e=>{const file=e.target.files[0];if(!file)return;const rd=new FileReader();rd.onload=()=>{try{const d=JSON.parse(rd.result),inc=(d.records||[]).filter(r=>r&&r.night&&r.start&&typeof r.hours==="number");
+  const ids=new Set(records.map(r=>r.id));inc.forEach(r=>{if(!ids.has(r.id)){r.score=score({...r,night:r.night_mode});records.push(r)}});records.sort((a,b)=>a.start<b.start?-1:1);SS("sme-records",records);refresh();toast(inc.length+"개 기록을 불러왔어요")}catch(err){toast("백업 파일을 읽지 못했어요")}};rd.readAsText(file);e.target.value=""};
+
+renderCheck();renderHome();
+const hv=location.hash.slice(1);if(["check","rest","log"].includes(hv))switchView(hv);
 if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}
 }
 </script>
-</body>
-</html>
+</body></html>

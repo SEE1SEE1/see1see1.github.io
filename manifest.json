@@ -1,7 +1,7 @@
 {
-  "name": "Save My Eyes - 구해줘, 내 눈",
+  "name": "구해줘, 내 눈 - 매일 밤 눈 건강 기록과 그래프",
   "short_name": "구해줘, 내 눈",
-  "description": "어두운 곳에서 폰을 본 오늘 밤, 내 눈 피로도와 회복법을 알려주는 자가 점검(참고용) 앱",
+  "description": "어두운 곳에서 폰을 본 밤, 눈 피로도를 체크하고 매일 기록해 주간·월간·연간 그래프로 보여주는 자가 점검(참고용) 앱",
   "id": "./",
   "start_url": "./",
   "scope": "./",
@@ -39,6 +39,19 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "내 기록 · 그래프",
+      "short_name": "내 기록",
+      "url": "./#log",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     }
   ]
 }
